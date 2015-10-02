@@ -501,7 +501,7 @@ def _train_network(args):
     Xvalid, Yvalid = _load_data(args.emValidFile,
             args.labelsValidFile, 
             args, bs)
-    print "[emCNN]: tile dimension is: %d" % bs
+    print "[emCNN]: tile radius is: %d" % bs
 
     omitLabels, pctOmitted = _omit_labels(Ytrain, args.omitLabels)
     print('[emCNN]:    will use %0.2f%% of training volume' % (100-pctOmitted))
