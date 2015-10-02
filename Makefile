@@ -46,7 +46,7 @@ PROJ_NAME := $(notdir $(BASE_DIR))
 
 
 #-------------------------------------------------------------------------------
-# PARAMETERS you *need* to configure for your particular system.
+# MACROS you *need* to configure for your particular system.
 #
 #-------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ CCT=caffe-ct
 
 
 #-------------------------------------------------------------------------------
-# PARAMETERS you may want to change to control the experimental setup
+# MACROS you may want to change to control the experimental setup
 #
 #-------------------------------------------------------------------------------
 
@@ -75,8 +75,7 @@ CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
 
 
 # Experiment parameters related to the data set.
-# Specify the train/valid/test breakdown.
-# Also, when subsampling, how many tiles to use.
+# You can put different train/test splits into different "experiments".
 EXPERIMENT=$(BASE_DIR)/Data/ISBI2012/ISBI_Train20
 S_TRAIN="range(0,20)"
 S_VALID="range(20,30)"
@@ -90,15 +89,17 @@ GPU=1
 
 
 #-------------------------------------------------------------------------------
-# OTHER MACROS
-# These you can probably ignore...
+# MACROS you can probably ignore...
+# 
 #-------------------------------------------------------------------------------
+
+SRC=$(BASE_DIR)/src
 
 # Different ways to run python.
 # (we always need PyCaffe and emlib.py in the PYTHONPATH)
-PY=PYTHONPATH=$(PYCAFFE):$(BASE_DIR) python
-PYNOHUP=PYTHONPATH=$(PYCAFFE):$(BASE_DIR) nohup python
-PYPROF=PYTHONPATH=$(PYCAFFE):.. python -m cProfile -s cumtime
+PY=PYTHONPATH=$(PYCAFFE):$(SRC) python
+PYNOHUP=PYTHONPATH=$(PYCAFFE):$(SRC) nohup python
+PYPROF=PYTHONPATH=$(PYCAFFE):$(SRC) python -m cProfile -s cumtime
 
 # Number of iterations to use in timing experiments
 NITERS=100
@@ -133,21 +134,21 @@ tar :
 #-------------------------------------------------------------------------------
 
 data:
-	$(PY) preprocess.py \
-		-X ./Data/ISBI2012/train-volume.tif \
-		-Y ./Data/ISBI2012/train-labels.tif \
+	@$(PY) $(SRC)/preprocess.py \
+		-X $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
+		-Y $(BASE_DIR)/Data/ISBI2012/train-labels.tif \
 		--train-slices $(S_TRAIN) \
 		--valid-slices $(S_VALID) \
 		--test-slices $(S_TEST) \
 		--out-dir $(EXPERIMENT)
 
-	$(PY) $(BASE_DIR)/Tools/make_lmdb.py \
+	@$(PY) $(SRC)/make_lmdb.py \
 		-X $(EXPERIMENT)/Xtrain.npy \
 		-Y $(EXPERIMENT)/Ytrain.npy \
 		--num-examples $(N_TILES) \
 		-o $(EXPERIMENT)/train.lmdb
 
-	$(PY) $(BASE_DIR)/Tools/make_lmdb.py \
+	@$(PY) $(SRC)/make_lmdb.py \
 		-X $(EXPERIMENT)/Xvalid.npy \
 		-Y $(EXPERIMENT)/Yvalid.npy \
 		--num-examples $(N_TILES) \
