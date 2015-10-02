@@ -101,6 +101,15 @@ if __name__ == "__main__":
     if Xtest.size > 0: 
         np.save(os.path.join(args.outDir, 'Xtest.npy'), Xtest) 
         np.save(os.path.join(args.outDir, 'Ytest.npy'), Ytest)
+
+    # also a matlab version
+    scipy.io.savemat(os.path.join(args.outDir, 'Xtrain.mat'), {'Xtrain' : Xtrain})
+    scipy.io.savemat(os.path.join(args.outDir, 'Ytrain.mat'), {'Ytrain' : Ytrain})
+    scipy.io.savemat(os.path.join(args.outDir, 'Xvalid.mat'), {'Xvalid' : Xvalid})
+    scipy.io.savemat(os.path.join(args.outDir, 'Yvalid.mat'), {'Yvalid' : Yvalid})
+    if Xtest.size > 0: 
+        scipy.io.savemat(os.path.join(args.outDir, 'Xtest.mat'), {'Xtest' : Xtest}) 
+        scipy.io.savemat(os.path.join(args.outDir, 'Ytest.mat'), {'Ytest' : Ytest})
     
     print('[preprocess]: done!')
 
