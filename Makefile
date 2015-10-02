@@ -71,6 +71,10 @@ CCT=caffe-ct
 
 # Experiment parameters related to the data set.
 # You can put different train/test splits into different "experiments".
+#
+# Note: if you change the EXPERIMENT, you'll need to manually hack
+#       the caffe *.net files (at least for the command-line version)
+#
 EXPERIMENT=ISBI_Train20
 S_TRAIN="range(0,20)"
 S_VALID="range(20,30)"
