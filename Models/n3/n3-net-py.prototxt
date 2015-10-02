@@ -1,5 +1,4 @@
-# Note: this has been altered to use the "layer" (vs "layers") style
-#       Caffe prototxt specification.
+# For use with caffe's python interface.
 
 
 name: "CiresanN3"

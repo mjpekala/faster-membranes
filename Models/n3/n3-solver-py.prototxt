@@ -1,6 +1,6 @@
 
 # The train/test net protocol buffer definition
-net: "./n3/n3-net-py.prototxt"
+net: "./Models/n3/n3-net-py.prototxt"
 
 #--------------------------------------------------
 # test_iter     := how many forward passes the test should carry out.
@@ -31,6 +31,6 @@ display: 100
 # snapshot intermediate results
 snapshot: 2000
 
-snapshot_prefix: "./n3/"
+snapshot_prefix: "./Models/n3/"
 # solver mode: CPU or GPU
 # solver_mode: CPU
