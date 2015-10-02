@@ -223,7 +223,7 @@ def _get_args():
 		    type=int, default=0, 
 		    help='(optional) 1 := apply arbitrary rotations')
     parser.add_argument('--omit-labels', dest='omitLabels', 
-		    type=str, default='[])', 
+		    type=str, default='[]', 
 		    help='(optional) list of additional labels to omit')
     parser.add_argument('--only-slices', dest='onlySlices', 
 		    type=str, default='', 
