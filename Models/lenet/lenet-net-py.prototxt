@@ -1,4 +1,4 @@
-# Note: assumes you will be running Caffe/CcT from the parent directory!
+# Caffe network configuration for use with pycaffe.
 
 name: "LeNet"
 
