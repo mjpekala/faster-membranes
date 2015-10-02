@@ -228,9 +228,6 @@ def _get_args():
     parser.add_argument('--only-slices', dest='onlySlices', 
 		    type=str, default='', 
 		    help='(optional) limit experiment to a subset of slices')
-    parser.add_argument('--rotate-data', dest='rotateData', 
-		    type=int, default=0, 
-		    help='(optional) 1 := apply arbitrary rotations')
 
     args = parser.parse_args()
 
