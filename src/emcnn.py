@@ -680,7 +680,7 @@ def _deploy_network(args):
     # Create a mask volume (vs list of labels to omit) due to API of emlib
     Mask = np.ones(Xdeploy.shape, dtype=np.bool)
     if Ydeploy is not None:
-        omitLabels, pctOmitted = _omit_labels(Yvalid, args.omitLabels)
+        omitLabels, pctOmitted = _omit_labels(Ydeploy, args.omitLabels)
         for yi in omitLabels:
             Mask[Ydeploy==yi] = False
         print('[emCNN]:    will evaluate %0.2f%% of volume' % (100-pctOmitted))
