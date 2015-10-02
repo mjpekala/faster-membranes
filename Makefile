@@ -18,16 +18,17 @@
 #       make CNN=n3 GPU=2 pycaffe-train
 #       make CNN=lenet GPU=3 pycaffe-train
 #       make CNN=n3 GPU=4 caffe-train
+#
+# 3. Extract predictions from the Caffe model:
+#      make CNN=lenet GPU=5 pycaffe-predict
 # 
-# 3. To generate timing estimates for Caffe:
+# 4. To generate timing estimates for Caffe:
 #      make caffe-time-gpu
 #      make caffe-time-cpu
 # 
-# 4. To generate timing estimates for Caffe con Troll (CcT):
+# 5. To generate timing estimates for Caffe con Troll (CcT):
 #      make cct-time-cpu
 #
-# 5. Extract predictions from the Caffe model:
-#      make CNN=lenet GPU=3 caffe-predict
 #
 # 6. Extract predictions for CcT:
 #      TODO: this is going to require some new code.
@@ -84,7 +85,8 @@ N_TILES=200000
 
 # Specify which CNN and model to use.
 CNN=lenet
-CAFFE_MODEL=iter_15000.caffemodel
+#CAFFE_MODEL=iter_015000.caffemodel
+CAFFE_MODEL=iter_004000.caffemodel
 CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
 
 # You may want to override this from the command line.
@@ -170,8 +172,9 @@ data:
 
 # Deletes data preprocessing
 data-clean:
-	\rm -rf $(EXPERIMENT)/train.lmdb $(EXPERIMENT)/valid.lmdb 
-	\rm -f $(EXPERIMENT)/{X,Y}*npy
+	\rm -rf $(DATA_DIR)/{train,valid}.lmdb 
+	\rm -f $(DATA_DIR)/{X,Y}*npy
+	\rm -f $(DATA_DIR)/{X,Y}*mat
 
 
 #-------------------------------------------------------------------------------
@@ -209,6 +212,16 @@ pycaffe-train:
 		> $(OUT_DIR)/pycaffe.$(CNN).train.out &
 
 
+pycaffe-predict:
+	$(PY) $(SRC)/emcnn.py \
+		--network $(MODEL_DIR)/$(CNN)-net-py.prototxt \
+		--model $(OUT_DIR)/$(CAFFE_MODEL) \
+		--x-deploy $(DATA_DIR)/Xvalid.npy \
+		--y-deploy $(DATA_DIR)/Yvalid.npy \
+		--gpu $(GPU) \
+		--out-dir $(OUT_DIR)
+
+
 #--------------------------------------------------
 # Produce timing estimates (using model created above)
 # using caffe command line for either:
@@ -231,8 +244,6 @@ caffe-time-cpu:
 # Note this works with either model developed during training
 # (just point the --model argument at the correct file)
 #--------------------------------------------------
-caffe-predict:
-	$(PY) deploy2.py -n $(DEPLOY) -m $(CAFFE_MODEL) -X ISBI2012/train-volume.tif  --gpu $(GPU) --max-brightness $(MAX_BRIGHT) --eval-pct .45
 
 
 
