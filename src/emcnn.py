@@ -149,7 +149,8 @@ def _load_data(xName, yName, args, tileSize):
         # Labels must be natural numbers (contiguous integers starting at 0)
         # because they are mapped to indices at the output of the network.
         # This next bit of code remaps the native y values to these indices.
-        Y = emlib.fix_class_labels(Y, args.omitLabels).astype(np.int8)
+        omitLabels, ignored = _omit_labels(Y, args.omitLabels)
+        Y = emlib.fix_class_labels(Y, omitLabels).astype(np.int32)
 
         print('[emCNN]:    yAll is %s' % str(np.unique(Y)))
 
