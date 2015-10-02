@@ -14,10 +14,10 @@
 #
 # 2. Train models using Caffe (command line and/or pycaffe).
 #    This can take a long time; hence we nohup these implicitly:
-#       make CNN=lenet GPU=1 caffe-train
-#       make CNN=lenet GPU=2 pycaffe-train
-#       make CNN=n3 GPU=3 caffe-train
-#       make CNN=n3 GPU=4 pycaffe-train
+#       make CNN=lenet GPU=1 pycaffe-train
+#       make CNN=n3 GPU=2 pycaffe-train
+#       make CNN=lenet GPU=3 pycaffe-train
+#       make CNN=n3 GPU=4 caffe-train
 # 
 # 3. To generate timing estimates for Caffe:
 #      make caffe-time-gpu
@@ -106,6 +106,7 @@ OUT_DIR=$(MODEL_DIR)/$(EXPERIMENT)
 # Different ways to run python.
 # (we always need PyCaffe and emlib.py in the PYTHONPATH)
 PY=PYTHONPATH=$(PYCAFFE):$(SRC) python
+IPY=PYTHONPATH=$(PYCAFFE):$(SRC) ipython -i --
 PYNOHUP=PYTHONPATH=$(PYCAFFE):$(SRC) nohup python
 PYPROF=PYTHONPATH=$(PYCAFFE):$(SRC) python -m cProfile -s cumtime
 
