@@ -232,20 +232,18 @@ pycaffe-predict:
 #  
 #--------------------------------------------------
 caffe-time-gpu:
-	$(CAFFE) time -model $(NET) -weights $(CAFFE_MODEL) -iterations $(NITERS) -gpu $(GPU)
+	$(CAFFE) time \
+		-model $(MODEL_DIR)/$(CNN)-net.prototxt \
+		-weights $(OUT_DIR)/$(CAFFE_MODEL) \
+		-iterations $(NITERS) -gpu $(GPU)
 
 
 caffe-time-cpu:
-	nohup $(CAFFE) time -model $(NET) -weights $(CAFFE_MODEL) -iterations $(NITERS) > caffe.time.cpu.out &
-
-
-#--------------------------------------------------
-# Generate pixel-level predictions using Caffe.
-#
-# Note this works with either model developed during training
-# (just point the --model argument at the correct file)
-#--------------------------------------------------
-
+	nohup $(CAFFE) time \
+		-model $(MODEL_DIR)/$(CNN)-net.prototxt \
+		-weights $(OUT_DIR)/$(CAFFE_MODEL) \
+		-iterations $(NITERS) -gpu $(GPU) \
+		> caffe.time.cpu.out &
 
 
 #-------------------------------------------------------------------------------
