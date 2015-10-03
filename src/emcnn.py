@@ -59,30 +59,6 @@ prune_border_4d = lambda X, bs: X[:, :, bs:(-bs), bs:(-bs)]
 
 
 
-def metrics(Y, Yhat): 
-    """
-    Assumes any class label <0 should be ignored.
-    Assumes all non-negative class labels are contiguous and start at 0.
-    (so for binary classification, the class labels are {0,1})
-    """
-    assert(len(Y.shape) == 3)
-    assert(len(Yhat.shape) == 3)
-
-    # create a confusion matrix
-    yAll = np.unique(Y);  yAll = yAll[yAll >= 0]
-    C = np.zeros((yAll.size, yAll.size))
-    for yi in yAll:
-        est = Yhat[Y==yi]
-        for jj in yAll:
-            C[yi,jj] = np.sum(est==jj)
-
-    # binary classification metrics (only for classes {0,1})
-    acc = 1.0*np.sum(Yhat[Y>=0] == Y[Y>=0]) / np.sum(Y>=0)
-    precision = 1.0*np.sum(Y[Yhat==1] == 1) / np.sum(Yhat==1)
-    recall = 1.0*np.sum(Yhat[Y==1] == 1) / np.sum(Y==1)
-
-    return C, acc, precision, recall
-
 
 
 def _print_net(net):
@@ -531,9 +507,9 @@ def _train_network(args):
         Yhat = prune_border_3d(Yhat, bs)
 
         # compute some metrics
-        C,acc,precision,recall = metrics(prune_border_3d(Yvalid, bs), Yhat)
+        emlib.metrics(prune_border_3d(Yvalid, bs), Yhat, display=True)
 
-        print('[emCNN]:  Validation set performance:')
+        print('[emCNN]: Validation set performance:')
         print('         acc=%0.2f, precision=%0.2f, recall=%0.2f' % (acc, precision, recall))
         print(C)
 
@@ -702,7 +678,7 @@ def _deploy_network(args):
     if Ydeploy is not None:
         yAll = np.unique(Ydeploy)
         if sum(yAll >= 0) > 1:
-            C,acc,precision,recall = metrics(prune_border_3d(Ydeploy, bs), Yhat)
+            emlib.metrics(prune_border_3d(Ydeploy, bs), Yhat, display=True)
 
             print('[emCNN]: Task performance:')
             print('         acc=%0.2f, precision=%0.2f, recall=%0.2f' % (acc, precision, recall))
