@@ -204,9 +204,11 @@ def _get_args():
     if '--solver' in sys.argv:
         print('[emcnn]  Will run in TRAIN mode\n')
         parser = _train_mode_args()
+        mode = 'train'
     else:
-        parser = _deploy_mode_args()
         print('[emcnn]  Will run in DEPLOY mode\n')
+        parser = _deploy_mode_args()
+        mode = 'deploy'
     
     #----------------------------------------
     # Parameters that apply to all modes
@@ -224,13 +226,12 @@ def _get_args():
 		    help='(optional) limit experiment to a subset of slices')
 
     args = parser.parse_args()
+    args.mode = mode
 
 
-    # map strings to python objects (a little gross, but ok for now...)
-    try: 
-        if args.omitLabels: 
-            args.omitLabels = eval(args.omitLabels)
-    except ValueError: pass
+    # map strings to python objects (a little gross, but ok for now...) 
+    if (args.mode == 'train') and args.omitLabels: 
+        args.omitLabels = eval(args.omitLabels)
 
     if args.onlySlices: 
         args.onlySlices = eval(args.onlySlices)
@@ -653,7 +654,7 @@ def _deploy_network(args):
     #----------------------------------------
     bs = border_size(batchDim)
     print "[emCNN]: loading deploy data..."
-    Xdeploy, _load_data(args.emDeployFile, None, args, bs)
+    Xdeploy = _load_data(args.emDeployFile, None, args, bs)
     print "[emCNN]: tile dimension is: %d" % bs
 
     # Create a mask volume (vs list of labels to omit) due to API of emlib
@@ -695,17 +696,11 @@ if __name__ == "__main__":
     else:
 	caffe.set_mode_cpu()
 
-
-    # Does either training or deployment, depending on which parameters
-    # were provided.
-    if args.solver:
-        print('[emCNN]: running in TRAINING mode')
+    # train or deploy
+    if args.mode == 'train':
         _train_network(args)
-    elif args.network:
-        print('[emCNN]: running in DEPLOY mode')
-        _deploy_network(args)
     else:
-        raise RuntimeError('No solver or network was provided - nothing to do')
+        _deploy_network(args)
 
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
