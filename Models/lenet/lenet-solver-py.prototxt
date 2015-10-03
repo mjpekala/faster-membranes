@@ -14,7 +14,7 @@ test_interval: 500
 #--------------------------------------------------
 lr_policy: "step"   # vs. "inv"
 # The maximum number of iterations
-max_iter: 60000
+max_iter: 80000
 stepsize: 20000
 
 base_lr: 0.001
