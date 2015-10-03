@@ -76,7 +76,7 @@ CCT=caffe-ct
 # Note: if you change the EXPERIMENT, you'll need to manually hack
 #       the caffe *.net files (at least for the command-line version)
 #
-EXPERIMENT=ISBI_Train20
+EXPERIMENT=ISBI_Train20_All
 S_TRAIN="range(0,20)"
 S_VALID="range(20,30)"
 S_TEST="[]"
@@ -155,6 +155,7 @@ data:
 		--train-slices $(S_TRAIN) \
 		--valid-slices $(S_VALID) \
 		--test-slices $(S_TEST) \
+		--brightness-quantile 1.0 \
 		--out-dir $(DATA_DIR)
 
 	@$(PY) $(SRC)/make_lmdb.py \
