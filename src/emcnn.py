@@ -132,10 +132,10 @@ def _load_data(xName, yName, args, tileSize):
         print('[emCNN]:    yAll is %s' % str(np.unique(Y)))
 
         Y = emlib.mirror_edges(Y, tileSize)
-    else:
-        Y = None
 
-    return X, Y
+        return X, Y
+    else:
+        return X
 
 
 
@@ -515,11 +515,8 @@ def _train_network(args):
         Yhat = prune_border_3d(Yhat, bs)
 
         # compute some metrics
-        emlib.metrics(prune_border_3d(Yvalid, bs), Yhat, display=True)
-
         print('[emCNN]: Validation set performance:')
-        print('         acc=%0.2f, precision=%0.2f, recall=%0.2f' % (acc, precision, recall))
-        print(C)
+        emlib.metrics(prune_border_3d(Yvalid, bs), Yhat, display=True)
 
         trainInfo.epoch += 1
  
@@ -656,18 +653,12 @@ def _deploy_network(args):
     #----------------------------------------
     bs = border_size(batchDim)
     print "[emCNN]: loading deploy data..."
-    Xdeploy, Ydeploy = _load_data(args.emDeployFile,
-            args.labelsDeployFile, 
-            args, bs)
+    Xdeploy, _load_data(args.emDeployFile, None, args, bs)
     print "[emCNN]: tile dimension is: %d" % bs
 
     # Create a mask volume (vs list of labels to omit) due to API of emlib
     Mask = np.ones(Xdeploy.shape, dtype=np.bool)
-    if Ydeploy is not None:
-        omitLabels, pctOmitted = _omit_labels(Ydeploy, args.omitLabels)
-        for yi in omitLabels:
-            Mask[Ydeploy==yi] = False
-        print('[emCNN]:    will evaluate %0.2f%% of volume' % (100-pctOmitted))
+    # TODO: sobol and/or pixel intensity thresholding
 
     #----------------------------------------
     # Do deployment & save results
@@ -681,16 +672,6 @@ def _deploy_network(args):
     Yhat[Mask==False] = -1;
     Prob = prune_border_4d(Prob, bs)
     Yhat = prune_border_3d(Yhat, bs)
-
-    # compute some metrics (if appropriate)
-    if Ydeploy is not None:
-        yAll = np.unique(Ydeploy)
-        if sum(yAll >= 0) > 1:
-            emlib.metrics(prune_border_3d(Ydeploy, bs), Yhat, display=True)
-
-            print('[emCNN]: Task performance:')
-            print('         acc=%0.2f, precision=%0.2f, recall=%0.2f' % (acc, precision, recall))
-            print(C)
 
     net.save(str(os.path.join(outDir, 'final.caffemodel')))
     np.save(os.path.join(outDir, 'YhatDeploy'), Prob)
