@@ -330,47 +330,46 @@ def interior_pixel_generator(X, borderSize, batchSize,
 
 
 
-def eval_performance(Y, Y_hat, thresh, verbose=False):
+def metrics(Y, Yhat, display=False): 
     """
-    Evaluates performance for a single tensor.
-      Y := the true class labels
-      Y_hat := the estimated labels (probabilities)
+    PARAMETERS:
+      Y    :  a numpy array of true class labels
+      Yhat : a numpy array of estimated class labels (same size as Y)
+
+    o Assumes any class label <0 should be ignored in the analysis.
+    o Assumes all non-negative class labels are contiguous and start at 0.
+      (so for binary classification, the class labels are {0,1})
     """
-    nTruePos = np.sum(np.logical_and(Y_hat >= thresh, Y==1))
-    nTrueNeg = np.sum(np.logical_and(Y_hat < thresh, Y==0))
-    nFalsePos = np.sum(np.logical_and(Y_hat >= thresh, Y==0))
-    nFalseNeg = np.sum(np.logical_and(Y_hat < thresh, Y==1))
-    fallout = nFalsePos / float(nTrueNeg+nFalsePos)
-    recall = nTruePos / float(nTruePos+nFalseNeg)
-    precision = nTruePos / float(nTruePos+nFalsePos)
-    specificity = nTrueNeg / float(nTrueNeg + nFalsePos)
-    f1 = 2*(precision*recall) / (precision+recall)
-    f1Alt = 2*nTruePos / float(2*nTruePos + nFalsePos + nFalseNeg)
+    assert(len(Y.shape) == 3)
+    assert(len(Yhat.shape) == 3)
 
-    # for predicted probabilities, see empirically how many are actually membrane.
-    # See calibrate() for more details
-    bins = np.logical_and(Y_hat >= (thresh-.05), Y_hat < (thresh+.05))
-    if np.sum(bins) > 0:
-        probT = np.sum(np.logical_and(Y==1, bins)) / float(np.sum(bins))
-    else:
-        probT = np.nan
-            
-    if verbose:
-        print '[info]: for threshold: %0.2f' % thresh
-        print '[info]:    p(%d%%):                  %0.3f' % (100*thresh,probT)
-        print '[info]:    FP/N (fall-out):         %0.3f' % fallout
-        print '[info]:    TN/N (specificity):      %0.3f' % specificity
-        print '[info]:    TP/P (recall):           %0.3f' % recall
-        print '[info]:    TP/(TP+FP) (precision):  %0.3f' % precision
-        print '[info]:    F1:                      %0.3f' % f1
+    # create a confusion matrix
+    # yAll is all *non-negative* class labels in Y
+    yAll = np.unique(Y);  yAll = yAll[yAll >= 0] 
+    C = np.zeros((yAll.size, yAll.size))
+    for yi in yAll:
+        est = Yhat[Y==yi]
+        for jj in yAll:
+            C[yi,jj] = np.sum(est==jj)
 
-    return {'nTruePos' : nTruePos,
-            'nTrueNeg' : nTrueNeg,
-            'nFalsePos' : nFalsePos,
-            'nFalseNeg' : nFalseNeg,
-            'recall' : recall,
-            'precision' : precision,
-            'fallout' : fallout,
-            'f1' : f1}
+    # works for arbitrary # of classes
+    acc = 1.0*np.sum(Yhat[Y>=0] == Y[Y>=0]) / np.sum(Y>=0)
+
+    # binary classification metrics (only for classes {0,1})
+    nTruePos = 1.0*np.sum((Y==1) & (Yhat==1))
+    precision = nTruePos / np.sum(Yhat==1)
+    recall = nTruePos / np.sum(Y==1)
+    f1 = 2.0*(precision*recall) / (precision+recall)
+
+    if display: 
+        for ii in range(C.shape[0]): 
+            print('  class=%d    %s' % (ii, C[ii,:]))
+        print('  accuracy:  %0.3f' % (acc))
+        print('  precision: %0.3f' % (precision))
+        print('  recall:    %0.3f' % (recall))
+        print('  f1:        %0.3f' % (f1))
+
+    return C, acc, precision, recall, f1
 
 
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
