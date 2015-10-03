@@ -102,10 +102,10 @@ def _load_data(xName, yName, args, tileSize):
     # Make sure the dimensions look ok before proceeding.
     assert(X.shape[0] < X.shape[1])
     assert(X.shape[0] < X.shape[2])
-    print('[emCNN]:    data shape: %s' % str(X.shape))
 
     if args.onlySlices: 
         X = X[args.onlySlices,:,:] 
+    print('[emCNN]:    data shape: %s' % str(X.shape))
 
     X = emlib.mirror_edges(X, tileSize)
 
@@ -121,6 +121,7 @@ def _load_data(xName, yName, args, tileSize):
 
         if args.onlySlices: 
             Y = Y[args.onlySlices,:,:] 
+        print('[emCNN]:    labels shape: %s' % str(Y.shape))
 
         # Labels must be natural numbers (contiguous integers starting at 0)
         # because they are mapped to indices at the output of the network.
@@ -138,29 +139,78 @@ def _load_data(xName, yName, args, tileSize):
 
 
 
-def _get_args():
-    """Command line parameters.
+def _train_mode_args():
+    """Parameters for training a CNN.
     """
-    
     parser = argparse.ArgumentParser()
 
-    #----------------------------------------
-    # Parameters for defining and training the neural network
-    # Note that you should specify exactly one of solver or network files.
-    # If you specify a network file, you also need to specify a model file.
-    #----------------------------------------
     parser.add_argument('--solver', dest='solver', 
-		    type=str, required='', 
+		    type=str, required=True, 
 		    help='Caffe prototxt file (train mode)')
 
+    parser.add_argument('--x-train', dest='emTrainFile', 
+		    type=str, required=True,
+		    help='Filename of the training volume (train mode)')
+    parser.add_argument('--y-train', dest='labelsTrainFile', 
+		    type=str, required=True,
+		    help='Filename of the training labels (train mode)')
+
+    parser.add_argument('--x-valid', dest='emValidFile', 
+		    type=str, required=True,
+		    help='Filename of the validation volume (train mode)')
+    parser.add_argument('--y-valid', dest='labelsValidFile', 
+		    type=str, required=True,
+		    help='Filename of the validation labels (train mode)')
+
+    parser.add_argument('--rotate-data', dest='rotateData', 
+		    type=int, default=0, 
+		    help='(optional) 1 := apply arbitrary rotations')
+
+    parser.add_argument('--omit-labels', dest='omitLabels', 
+		    type=str, default='[]', 
+		    help='(optional) list of additional labels to omit')
+
+    return parser
+
+
+def _deploy_mode_args():
+    """Parameters for deploying a CNN.
+    """
+    parser = argparse.ArgumentParser()
+
     parser.add_argument('--network', dest='network', 
-		    type=str, default='',
+		    type=str, required=True,
 		    help='Caffe network file (train mode)')
 
     parser.add_argument('--model', dest='model', 
-		    type=str, default='',
+		    type=str, required=True,
 		    help='Caffe model file to use for weights (deploy mode)')
 
+    parser.add_argument('--x-deploy', dest='emDeployFile', 
+		    type=str, required=True,
+		    help='Filename of the "deploy" volume (deploy mode)')
+
+    return parser
+
+
+
+def _get_args():
+    """Command line parameters.
+
+    Note: use either the training parameters or the deploy parameters;
+          not both.
+    """
+
+    if '--solver' in sys.argv:
+        print('[emcnn]  Will run in TRAIN mode\n')
+        parser = _train_mode_args()
+    else:
+        parser = _deploy_mode_args()
+        print('[emcnn]  Will run in DEPLOY mode\n')
+    
+    #----------------------------------------
+    # Parameters that apply to all modes
+    #----------------------------------------
     parser.add_argument('--gpu', dest='gpu', 
 		    type=int, default=-1, 
 		    help='GPU ID to use')
@@ -169,39 +219,6 @@ def _get_args():
 		    type=str, default='', 
 		    help='(optional) overrides the snapshot directory')
 
-
-    #----------------------------------------
-    # Data set parameters.  
-    #----------------------------------------
-    parser.add_argument('--x-train', dest='emTrainFile', 
-		    type=str, default='',
-		    help='Filename of the training volume (train mode)')
-    parser.add_argument('--y-train', dest='labelsTrainFile', 
-		    type=str, default='',
-		    help='Filename of the training labels (train mode)')
-
-    parser.add_argument('--x-valid', dest='emValidFile', 
-		    type=str, default='',
-		    help='Filename of the validation volume (train mode)')
-    parser.add_argument('--y-valid', dest='labelsValidFile', 
-		    type=str, default='',
-		    help='Filename of the validation labels (train mode)')
-
-
-    parser.add_argument('--x-deploy', dest='emDeployFile', 
-		    type=str, default='',
-		    help='Filename of the "deploy" volume (deploy mode)')
-    parser.add_argument('--y-deploy', dest='labelsDeployFile', 
-		    type=str, default='',
-		    help='Filename of the "deploy" labels (if any; deploy mode)')
-
-    
-    parser.add_argument('--rotate-data', dest='rotateData', 
-		    type=int, default=0, 
-		    help='(optional) 1 := apply arbitrary rotations')
-    parser.add_argument('--omit-labels', dest='omitLabels', 
-		    type=str, default='[]', 
-		    help='(optional) list of additional labels to omit')
     parser.add_argument('--only-slices', dest='onlySlices', 
 		    type=str, default='', 
 		    help='(optional) limit experiment to a subset of slices')
@@ -210,22 +227,13 @@ def _get_args():
 
 
     # map strings to python objects (a little gross, but ok for now...)
-    if args.omitLabels:
-        args.omitLabels = eval(args.omitLabels)
-    if args.onlySlices:
+    try: 
+        if args.omitLabels: 
+            args.omitLabels = eval(args.omitLabels)
+    except ValueError: pass
+
+    if args.onlySlices: 
         args.onlySlices = eval(args.onlySlices)
-
-
-    # X and Y volumes need to come in pairs
-    if args.emTrainFile and not args.labelsTrainFile: 
-        raise RuntimeError('missing Y train file!')
-    if (not args.emTrainFile) and args.labelsTrainFile: 
-        raise RuntimeError('missing X train file!')
-
-    if args.emValidFile and not args.labelsValidFile: 
-        raise RuntimeError('missing Y valid file!')
-    if (not args.emValidFile) and args.labelsValidFile: 
-        raise RuntimeError('missing X valid file!')
 
     return args
 
