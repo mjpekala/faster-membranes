@@ -1,4 +1,4 @@
-""" Helper functions used by the train.py and deploy.py scripts.
+""" Helper functions for working with EM data cubes.
 """
 
 __author__ = "Mike Pekala"
