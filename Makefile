@@ -76,7 +76,7 @@ CCT=caffe-ct
 # Note: if you change the EXPERIMENT, you'll need to manually hack
 #       the caffe *.net files (at least for the command-line version)
 #
-EXPERIMENT=ISBI_Train20_All
+EXPERIMENT=ISBI_Train20
 S_TRAIN="range(0,20)"
 S_VALID="range(20,30)"
 S_TEST="[]"
@@ -86,7 +86,7 @@ N_TILES=200000
 # Specify which CNN and model to use.
 CNN=lenet
 #CAFFE_MODEL=iter_015000.caffemodel
-CAFFE_MODEL=iter_004000.caffemodel
+CAFFE_MODEL=iter_022000.caffemodel
 CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
 
 # You may want to override this from the command line.
@@ -155,7 +155,7 @@ data:
 		--train-slices $(S_TRAIN) \
 		--valid-slices $(S_VALID) \
 		--test-slices $(S_TEST) \
-		--brightness-quantile 1.0 \
+		--brightness-quantile 0.97 \
 		--out-dir $(DATA_DIR)
 
 	@$(PY) $(SRC)/make_lmdb.py \
@@ -214,13 +214,13 @@ pycaffe-train:
 
 
 pycaffe-predict:
-	$(PY) $(SRC)/emcnn.py \
+	$(PYNOHUP) $(SRC)/emcnn.py \
 		--network $(MODEL_DIR)/$(CNN)-net-py.prototxt \
 		--model $(OUT_DIR)/$(CAFFE_MODEL) \
 		--x-deploy $(DATA_DIR)/Xvalid.npy \
 		--y-deploy $(DATA_DIR)/Yvalid.npy \
 		--gpu $(GPU) \
-		--out-dir $(OUT_DIR)
+		--out-dir $(OUT_DIR) &
 
 
 #--------------------------------------------------
