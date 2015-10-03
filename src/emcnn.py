@@ -43,7 +43,114 @@ import pdb
 import numpy as np
 import scipy
 
+from sobol_lib import i4_sobol_generate as sobol
 import emlib
+
+
+
+
+def _train_mode_args():
+    """Parameters for training a CNN.
+    """
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--solver', dest='solver', 
+		    type=str, required=True, 
+		    help='Caffe prototxt file (train mode)')
+
+    parser.add_argument('--x-train', dest='emTrainFile', 
+		    type=str, required=True,
+		    help='Filename of the training volume (train mode)')
+    parser.add_argument('--y-train', dest='labelsTrainFile', 
+		    type=str, required=True,
+		    help='Filename of the training labels (train mode)')
+
+    parser.add_argument('--x-valid', dest='emValidFile', 
+		    type=str, required=True,
+		    help='Filename of the validation volume (train mode)')
+    parser.add_argument('--y-valid', dest='labelsValidFile', 
+		    type=str, required=True,
+		    help='Filename of the validation labels (train mode)')
+
+    parser.add_argument('--rotate-data', dest='rotateData', 
+		    type=int, default=0, 
+		    help='(optional) 1 := apply arbitrary rotations')
+
+    parser.add_argument('--omit-labels', dest='omitLabels', 
+		    type=str, default='[]', 
+		    help='(optional) list of additional labels to omit')
+
+    return parser
+
+
+def _deploy_mode_args():
+    """Parameters for deploying a CNN.
+    """
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--network', dest='network', 
+		    type=str, required=True,
+		    help='Caffe network file (train mode)')
+
+    parser.add_argument('--model', dest='model', 
+		    type=str, required=True,
+		    help='Caffe model file to use for weights (deploy mode)')
+
+    parser.add_argument('--x-deploy', dest='emDeployFile', 
+		    type=str, required=True,
+		    help='Filename of the "deploy" volume (deploy mode)')
+
+    parser.add_argument('--eval-pct', dest='evalPct', 
+		    type=float, default=1.0,
+		    help='what percentage of pixels to evaluate in each slice')
+
+    return parser
+
+
+
+def _get_args():
+    """Command line parameters.
+
+    Note: use either the training parameters or the deploy parameters;
+          not both.
+    """
+
+    if '--solver' in sys.argv:
+        print('[emcnn]  Will run in TRAIN mode\n')
+        parser = _train_mode_args()
+        mode = 'train'
+    else:
+        print('[emcnn]  Will run in DEPLOY mode\n')
+        parser = _deploy_mode_args()
+        mode = 'deploy'
+    
+    #----------------------------------------
+    # Parameters that apply to all modes
+    #----------------------------------------
+    parser.add_argument('--gpu', dest='gpu', 
+		    type=int, default=-1, 
+		    help='GPU ID to use')
+
+    parser.add_argument('--out-dir', dest='outDir', 
+		    type=str, default='', 
+		    help='(optional) overrides the snapshot directory')
+
+    parser.add_argument('--only-slices', dest='onlySlices', 
+		    type=str, default='', 
+		    help='(optional) limit experiment to a subset of slices')
+
+    args = parser.parse_args()
+    args.mode = mode
+
+
+    # map strings to python objects (a little gross, but ok for now...) 
+    if (args.mode == 'train') and args.omitLabels: 
+        args.omitLabels = eval(args.omitLabels)
+
+    if args.onlySlices: 
+        args.onlySlices = eval(args.onlySlices)
+
+    return args
 
 
 
@@ -56,9 +163,6 @@ numel = lambda X: X.size # np.prod(X.shape)
 border_size = lambda batchDim: int(batchDim[2]/2)
 prune_border_3d = lambda X, bs: X[:, bs:(-bs), bs:(-bs)]
 prune_border_4d = lambda X, bs: X[:, :, bs:(-bs), bs:(-bs)]
-
-
-
 
 
 def _print_net(net):
@@ -136,107 +240,6 @@ def _load_data(xName, yName, args, tileSize):
         return X, Y
     else:
         return X
-
-
-
-def _train_mode_args():
-    """Parameters for training a CNN.
-    """
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--solver', dest='solver', 
-		    type=str, required=True, 
-		    help='Caffe prototxt file (train mode)')
-
-    parser.add_argument('--x-train', dest='emTrainFile', 
-		    type=str, required=True,
-		    help='Filename of the training volume (train mode)')
-    parser.add_argument('--y-train', dest='labelsTrainFile', 
-		    type=str, required=True,
-		    help='Filename of the training labels (train mode)')
-
-    parser.add_argument('--x-valid', dest='emValidFile', 
-		    type=str, required=True,
-		    help='Filename of the validation volume (train mode)')
-    parser.add_argument('--y-valid', dest='labelsValidFile', 
-		    type=str, required=True,
-		    help='Filename of the validation labels (train mode)')
-
-    parser.add_argument('--rotate-data', dest='rotateData', 
-		    type=int, default=0, 
-		    help='(optional) 1 := apply arbitrary rotations')
-
-    parser.add_argument('--omit-labels', dest='omitLabels', 
-		    type=str, default='[]', 
-		    help='(optional) list of additional labels to omit')
-
-    return parser
-
-
-def _deploy_mode_args():
-    """Parameters for deploying a CNN.
-    """
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--network', dest='network', 
-		    type=str, required=True,
-		    help='Caffe network file (train mode)')
-
-    parser.add_argument('--model', dest='model', 
-		    type=str, required=True,
-		    help='Caffe model file to use for weights (deploy mode)')
-
-    parser.add_argument('--x-deploy', dest='emDeployFile', 
-		    type=str, required=True,
-		    help='Filename of the "deploy" volume (deploy mode)')
-
-    return parser
-
-
-
-def _get_args():
-    """Command line parameters.
-
-    Note: use either the training parameters or the deploy parameters;
-          not both.
-    """
-
-    if '--solver' in sys.argv:
-        print('[emcnn]  Will run in TRAIN mode\n')
-        parser = _train_mode_args()
-        mode = 'train'
-    else:
-        print('[emcnn]  Will run in DEPLOY mode\n')
-        parser = _deploy_mode_args()
-        mode = 'deploy'
-    
-    #----------------------------------------
-    # Parameters that apply to all modes
-    #----------------------------------------
-    parser.add_argument('--gpu', dest='gpu', 
-		    type=int, default=-1, 
-		    help='GPU ID to use')
-
-    parser.add_argument('--out-dir', dest='outDir', 
-		    type=str, default='', 
-		    help='(optional) overrides the snapshot directory')
-
-    parser.add_argument('--only-slices', dest='onlySlices', 
-		    type=str, default='', 
-		    help='(optional) limit experiment to a subset of slices')
-
-    args = parser.parse_args()
-    args.mode = mode
-
-
-    # map strings to python objects (a little gross, but ok for now...) 
-    if (args.mode == 'train') and args.omitLabels: 
-        args.omitLabels = eval(args.omitLabels)
-
-    if args.onlySlices: 
-        args.onlySlices = eval(args.onlySlices)
-
-    return args
 
 
 
@@ -658,8 +661,20 @@ def _deploy_network(args):
     print "[emCNN]: tile dimension is: %d" % bs
 
     # Create a mask volume (vs list of labels to omit) due to API of emlib
-    Mask = np.ones(Xdeploy.shape, dtype=np.bool)
-    # TODO: sobol and/or pixel intensity thresholding
+    if args.evalPct < 1: 
+        Mask = np.zeros(Xdeploy.shape, dtype=np.bool)
+        m = Xdeploy.shape[-2]
+        n = Xdeploy.shape[-1]
+        nToEval = np.round(args.evalPct*m*n).astype(np.int32)
+        idx = sobol(2, nToEval ,0)
+        idx[0] = np.floor(m*idx[0])
+        idx[1] = np.floor(n*idx[1])
+        idx = idx.astype(np.int32)
+        Mask[:,idx[0], idx[1]] = True
+        pct = 100.*np.sum(Mask) / Mask.size
+        print("[emCNN]: subsampling volume...%0.2f%% remains" % pct)
+    else:
+        Mask = np.ones(Xdeploy.shape, dtype=np.bool)
 
     #----------------------------------------
     # Do deployment & save results
