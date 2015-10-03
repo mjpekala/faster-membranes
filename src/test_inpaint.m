@@ -132,7 +132,7 @@ for pct = param.pctToTry;
   err = [err sum(tmp(:))];
 
   nKilled = sum(isnan(Ycnn(:)));
-  pctOmitted = nKilled / numel(Ycnn);
+  pctOmitted = [pctOmitted nKilled / numel(Ycnn)];
 
   %----------------------------------------
   % visualize
