@@ -13,9 +13,9 @@ test_interval: 500
 # Learning rate parameters
 #--------------------------------------------------
 lr_policy: "step"   # vs. "inv"
-# The maximum number of iterations
-max_iter: 60000
-stepsize: 20000
+
+max_iter: 200000
+stepsize: 70000
 
 base_lr: 0.001
 momentum: 0.9

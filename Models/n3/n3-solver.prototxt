@@ -23,7 +23,7 @@ lr_policy: "inv"
 display: 200
 
 # The maximum number of iterations
-max_iter: 60000
+max_iter: 200000
 
 # snapshot intermediate results
 snapshot: 2000
