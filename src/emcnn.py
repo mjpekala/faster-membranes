@@ -685,7 +685,7 @@ def _deploy_network(args):
             print(C)
 
     net.save(str(os.path.join(outDir, 'final.caffemodel')))
-    np.save(os.path.join(outDir, 'YhatDeploy.npz'), Prob)
+    np.save(os.path.join(outDir, 'YhatDeploy'), Prob)
     scipy.io.savemat(os.path.join(outDir, 'YhatDeploy.mat'), {'Yhat' : Prob})
     print('[emCNN]: deployment complete.')
 
