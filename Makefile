@@ -18,6 +18,7 @@
 #       make CNN=n3-py GPU=2 pycaffe-train
 #       make CNN=lenet GPU=3 caffe-train
 #       make CNN=n3 GPU=4 caffe-train
+#       make CNN=lenet cct-train
 #
 # 3. Extract predictions from the Caffe model:
 #      make CNN=lenet-py GPU=1 pycaffe-predict
@@ -252,9 +253,10 @@ caffe-time-cpu:
 # Working with CcT
 #-------------------------------------------------------------------------------
 cct-train:
-	nohup $(CCT) train $(SOLVER) > cct.train.out &
+	nohup $(CCT) train $(MODEL_DIR)/$(CNN) > cct.train.out &
 
 
+# TODO: fix this
 cct-time-cpu:
 	nohup $(CCT) test $(SOLVER) -i $(CCT_MODEL) > cct.time.cpu.out &
 
