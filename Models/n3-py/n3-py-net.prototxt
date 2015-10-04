@@ -44,7 +44,7 @@ layer {
   pooling_param {
     pool: MAX
     kernel_size: 2
-    stride: 1
+    stride: 2         # mjp: was 1 before...
   }
 }
 layer {
@@ -75,7 +75,7 @@ layer {
   convolution_param {
     num_output: 48
     pad: 0
-    kernel_size: 5     # TODO
+    kernel_size: 5
     stride: 1
     weight_filler {
       type: "gaussian"
@@ -100,7 +100,7 @@ layer {
   pooling_param {
     pool: MAX
     kernel_size: 2
-    stride: 1
+    stride: 2           % mjp: was 1 before
   }
 }
 layer {
@@ -150,7 +150,7 @@ layer {
   pooling_param {
     pool: MAX
     kernel_size: 2
-    stride: 1
+    stride: 2         # mjp: was 1 before
   }
 }
 
