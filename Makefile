@@ -253,7 +253,7 @@ caffe-time-cpu:
 # Working with CcT
 #-------------------------------------------------------------------------------
 cct-train:
-	nohup $(CCT) train $(MODEL_DIR)/$(CNN) > cct.train.out &
+	nohup $(CCT) train $(MODEL_DIR)/$(CNN)-solver.prototxt > cct.train.out &
 
 
 # TODO: fix this
