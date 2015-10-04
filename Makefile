@@ -14,13 +14,14 @@
 #
 # 2. Train models using Caffe (command line and/or pycaffe).
 #    This can take a long time; hence we nohup these implicitly:
-#       make CNN=lenet GPU=1 pycaffe-train
-#       make CNN=n3 GPU=2 pycaffe-train
-#       make CNN=lenet GPU=3 pycaffe-train
+#       make CNN=lenet-py GPU=1 pycaffe-train
+#       make CNN=n3-py GPU=2 pycaffe-train
+#       make CNN=lenet GPU=3 caffe-train
 #       make CNN=n3 GPU=4 caffe-train
 #
 # 3. Extract predictions from the Caffe model:
-#      make CNN=lenet GPU=5 pycaffe-predict
+#      make CNN=lenet-py GPU=1 pycaffe-predict
+#      make CNN=n3-py GPU=2 pycaffe-predict
 # 
 # 4. To generate timing estimates for Caffe:
 #      make caffe-time-gpu
@@ -84,8 +85,9 @@ N_TILES=200000
 
 
 # Specify which CNN and model to use.
+#    CNN \in {n3, n3-py, lenet, lenet-py}
+# The "-py" models are for pycaffe targets.
 CNN=lenet
-#CAFFE_MODEL=iter_015000.caffemodel
 CAFFE_MODEL=iter_022000.caffemodel
 CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
 
@@ -155,7 +157,7 @@ data:
 		--train-slices $(S_TRAIN) \
 		--valid-slices $(S_VALID) \
 		--test-slices $(S_TEST) \
-		--brightness-quantile 0.97 \
+		--brightness-quantile 1.0 \
 		--out-dir $(DATA_DIR)
 
 	@$(PY) $(SRC)/make_lmdb.py \
@@ -207,7 +209,7 @@ pycaffe-train:
 		--y-train $(DATA_DIR)/Ytrain.npy \
 		--x-valid $(DATA_DIR)/Xvalid.npy \
 		--y-valid $(DATA_DIR)/Yvalid.npy \
-		--solver $(MODEL_DIR)/$(CNN)-solver-py.prototxt \
+		--solver $(MODEL_DIR)/$(CNN)-solver.prototxt \
 		--gpu $(GPU) \
 		--out-dir $(OUT_DIR) \
 		> $(OUT_DIR)/pycaffe.$(CNN).train.out &
@@ -215,7 +217,7 @@ pycaffe-train:
 
 pycaffe-predict:
 	$(PYNOHUP) $(SRC)/emcnn.py \
-		--network $(MODEL_DIR)/$(CNN)-net-py.prototxt \
+		--network $(MODEL_DIR)/$(CNN)-net.prototxt \
 		--model $(OUT_DIR)/$(CAFFE_MODEL) \
 		--x-deploy $(DATA_DIR)/Xvalid.npy \
 		--y-deploy $(DATA_DIR)/Yvalid.npy \
