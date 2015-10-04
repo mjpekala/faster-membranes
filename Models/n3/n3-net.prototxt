@@ -17,7 +17,7 @@ layer {
     mirror: true
   }
   data_param {
-    source: "train.lmdb"
+    source: "Data/ISBI2012/ISBI_Train20/train.lmdb"
     batch_size: 100
     backend: LMDB
   }
@@ -38,7 +38,7 @@ layer {
     scale: 0.00390625
   }
   data_param {
-    source: "valid.lmdb"
+    source: "Data/ISBI2012/ISBI_Train20/valid.lmdb"
     batch_size: 100
     backend: LMDB
   }
