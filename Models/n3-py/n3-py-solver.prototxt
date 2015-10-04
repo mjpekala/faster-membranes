@@ -1,6 +1,12 @@
-
 # The train/test net protocol buffer definition
-net: "./Models/n3/n3-net-py.prototxt"
+# This is for a variant of Ciresan's N3 network[1],
+# and is designed for use with PyCaffe.
+#
+# [1] Ciresan et. al. "Deep Neural Networks Segment
+#     Neuronal Membranes in Electron Microscopy Images,"
+#     NIPS 2012.
+
+net: "./Models/n3-py/n3-py-net.prototxt"
 
 #--------------------------------------------------
 # test_iter     := how many forward passes the test should carry out.
@@ -31,6 +37,7 @@ display: 100
 # snapshot intermediate results
 snapshot: 2000
 
-snapshot_prefix: "./Models/n3/"
+# Note: we'll probably override the snapshot prefix.
+snapshot_prefix: "./Models/n3-py/"
 # solver mode: CPU or GPU
 # solver_mode: CPU
