@@ -100,7 +100,7 @@ layer {
   pooling_param {
     pool: MAX
     kernel_size: 2
-    stride: 2           % mjp: was 1 before
+    stride: 2           # mjp: was 1 before
   }
 }
 layer {
