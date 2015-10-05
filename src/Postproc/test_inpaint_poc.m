@@ -8,7 +8,7 @@ addpath('./tight_subplot');
 param=struct();
 param.emFile = '../../Data/ISBI2012/ISBI_Train20/Xvalid.mat';
 param.truthFile = '../../Data/ISBI2012/ISBI_Train20/Yvalid.mat';
-param.z = 1;  % which slice to use for visualization
+param.z = 5;              % which slice to use for visualization
 param.interactive = 1;
 
 param.pctToTry = [.25 .5 .6:.05:.95];
@@ -46,13 +46,16 @@ Yvalid = permute(Yvalid, [2 3 1]);  % python -> matlab ordering
 if 1
     Yhat2 = inpaint_prob_map(Yhat);
     [fpr, recall, precision] = perfcurve2(Yvalid, Yhat2);
+    
+    save('./Yhat2.mat', 'Yhat2', '-v7.3');
+    save('./Yvalid.mat', 'Yvalid', '-v7.3');
 
     % visualize pixel-level classification performance
     figure;
     plot(fpr, recall); grid on;
     xlabel('FPR'); ylabel('TPR');
     title('pixel-level classification performance');
-    
+ 
     % visualize estimates for one slice
     figure('Position', [200 200 1200 400]);
     ha = tight_subplot(1, 3, [.03, .03]);
