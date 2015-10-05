@@ -287,6 +287,11 @@ class TrainInfo:
         self.gamma = solverParam.gamma    # := step factor
         self.V = {}                       # := previous values (for momentum)
 
+        assert(self.alpha > 0)
+        assert(self.gamma > 0)
+        assert(self.mu >= 0)
+
+
         # XXX: weight decay
         # XXX: layer-specific weights
 
@@ -428,6 +433,7 @@ def train_one_epoch(solver, X, Y,
         if (trainInfo.iter % trainInfo.param.display) == 1: 
             print "[emCNN]: completed iteration %d of %d (epoch=%0.2f);" % (trainInfo.iter, trainInfo.param.max_iter, trainInfo.epoch+epochPct)
             print "[emCNN]:     %0.2f min elapsed (%0.2f CNN min)" % (trainInfo.netTime/60., trainInfo.cnnTime/60.)
+            print "[emCNN]:     alpha=%0.4e, gamma=%0.4e" % (trainInfo.alpha, trainInfo.gamma)
             if loss: 
                 print "[emCNN]:     loss=%0.2f" % loss
             if acc: 
