@@ -94,6 +94,9 @@ CNN=lenet
 CAFFE_MODEL=iter_080000.caffemodel
 CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
 
+# Extra synthetic data augmentation during training?
+ROTATE=1
+
 # How much of the volume to evaluate in deploy mode \in [0,1]
 EVAL_PCT=1.0
 
@@ -216,6 +219,7 @@ pycaffe-train:
 		--x-valid $(DATA_DIR)/Xvalid.npy \
 		--y-valid $(DATA_DIR)/Yvalid.npy \
 		--solver $(MODEL_DIR)/$(CNN)-solver.prototxt \
+		--rotate-data $(ROTATE) \
 		--gpu $(GPU) \
 		--out-dir $(OUT_DIR) \
 		> $(OUT_DIR)/pycaffe.$(CNN).train.out &
