@@ -37,7 +37,8 @@ __copyright__ = "Copyright 2015, JHU/APL"
 __license__ = "Apache 2.0"
 
 
-import sys, os, argparse, time
+import sys, os, argparse, time, datetime
+from pprint import pprint
 import pdb
 
 import numpy as np
@@ -611,6 +612,7 @@ def predict(net, X, Mask, batchDim):
         if (lastChatter+2) < (elapsed/60.):  # notify progress every 2 min
             lastChatter = elapsed/60.
             print('[emCNN]: elapsed=%0.2f min; %0.2f%% complete' % (elapsed/60., 100.*epochPct))
+            sys.stdout.flush()
 
     # done
     elapsed = time.time() - tic
@@ -641,8 +643,19 @@ def _deploy_network(args):
         # there is no snapshot dir in a network file, so default is
         # to just use the location of the network file.
         outDir = os.path.dirname(args.network)
+
+    # Add a timestamped subdirectory.
+    ts = datetime.datetime.now()
+    subdir = "Deploy_%s_%d-%d" % (ts.date(), ts.hour, ts.minute)
+    outDir = os.path.join(outDir, subdir)
+
     if not os.path.isdir(outDir):
-        os.mkdir(outDir)
+        os.makedirs(outDir)
+    print('[emCNN]: writing results to: %s' % outDir)
+
+    # save the parameters we're using
+    with open(os.path.join(outDir, 'params.txt'), 'w') as f:
+        pprint(args, stream=f)
 
     #----------------------------------------
     # Create the Caffe network
@@ -692,6 +705,7 @@ def _deploy_network(args):
     net.save(str(os.path.join(outDir, 'final.caffemodel')))
     np.save(os.path.join(outDir, 'YhatDeploy'), Prob)
     scipy.io.savemat(os.path.join(outDir, 'YhatDeploy.mat'), {'Yhat' : Prob})
+
     print('[emCNN]: deployment complete.')
 
 
