@@ -309,24 +309,25 @@ def _xform_minibatch(X, rotate=False):
           Hence the explicit construction of X2 with order 'C'.
 
     """
-    X2 = np.zeros(X.shape, dtype=np.float32, order='C')
 
-    toss = np.random.rand()
-    if toss < .5:
-        if rotate: 
-            # rotation by an arbitrary angle
-            angle = np.random.rand() * 360.0 
-            fillColor = np.max(X) 
-            X2 = scipy.ndimage.rotate(X2, angle, axes=(2,3), reshape=False, cval=fillColor)
-        elif np.random.rand() < .5: 
+    augment = np.random.rand() < .5
+    if augment and rotate: 
+        # rotation by an arbitrary angle 
+        angle = np.random.rand() * 360.0 
+        fillColor = np.max(X) 
+        X2 = scipy.ndimage.rotate(X, angle, axes=(2,3), reshape=False, cval=fillColor)
+    elif augment:
+        # Mirror about the x-axis or y-axis
+        X2 = np.zeros(X.shape, dtype=np.float32, order='C')
+        if np.random.rand() < .5: 
             # fliplr
             X2[:,:,:,:] = X[:,:,::-1,:]
         else: 
             # flipud
             X2[:,:,:,:] = X[:,:,:,::-1]
     else:
-        # No transformation
-        X2[...] = X[...]
+        # No transformation - use input data
+        X2 = X
 
     return X2
 
@@ -474,6 +475,8 @@ def _train_network(args):
         print('[emCNN]:   WARNING: applying arbitrary rotations to data.  This may degrade performance in some cases...\n')
     else:
         syn_func = lambda V: _xform_minibatch(V, False)
+
+    print(args)
 
     #----------------------------------------
     # Create the Caffe solver
