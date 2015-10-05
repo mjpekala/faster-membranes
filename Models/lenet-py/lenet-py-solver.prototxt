@@ -13,14 +13,14 @@ test_interval: 500
 # Learning rate parameters
 #--------------------------------------------------
 lr_policy: "step"   # vs. "inv"
-max_iter: 80000
-stepsize: 20000
+max_iter: 400000
+stepsize: 100000
 
 base_lr: 0.001
 momentum: 0.9
 gamma: 0.1
-weight_decay: 0.0005
 
+# weight_decay: 0.0005
 # power: 0.75
 
 #--------------------------------------------------
@@ -28,7 +28,7 @@ weight_decay: 0.0005
 # Display every 100 iterations
 display: 100
 # snapshot intermediate results
-snapshot: 2000
+snapshot: 5000
 
 # You can override the snapshot prefix via the python script
 snapshot_prefix: "./Models/lenet-py/"
