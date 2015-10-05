@@ -24,7 +24,6 @@
 #      make CNN=lenet-py GPU=1 pycaffe-predict
 #      make CNN=lenet-py GPU=2 EVAL_PCT=.1 pycaffe-predict
 #
-#      make CNN=n3-py GPU=2 pycaffe-predict
 # 
 # 4. To generate timing estimates for Caffe:
 #      make caffe-time-gpu
