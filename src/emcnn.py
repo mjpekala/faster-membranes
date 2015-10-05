@@ -312,17 +312,21 @@ def _xform_minibatch(X, rotate=False):
     X2 = np.zeros(X.shape, dtype=np.float32, order='C')
 
     toss = np.random.rand()
-    if toss < .2:
-        X2[:,:,:,:] = X[:,:,::-1,:]    # fliplr
-    elif toss < .4:
-        X2[:,:,:,:] = X[:,:,:,::-1]    # flipud
+    if toss < .5:
+        if rotate: 
+            # rotation by an arbitrary angle
+            angle = np.random.rand() * 360.0 
+            fillColor = np.max(X) 
+            X2 = scipy.ndimage.rotate(X2, angle, axes=(2,3), reshape=False, cval=fillColor)
+        elif np.random.rand() < .5: 
+            # fliplr
+            X2[:,:,:,:] = X[:,:,::-1,:]
+        else: 
+            # flipud
+            X2[:,:,:,:] = X[:,:,:,::-1]
     else:
-        X2[...] = X[...]               # no transformation
-
-    if rotate:
-        angle = np.random.rand() * 360.0
-        fillColor = np.max(X)
-        X2 = scipy.ndimage.rotate(X2, angle, axes=(2,3), reshape=False, cval=fillColor)
+        # No transformation
+        X2[...] = X[...]
 
     return X2
 
