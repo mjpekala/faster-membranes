@@ -8,7 +8,7 @@ addpath('./tight_subplot');
 param=struct();
 param.emFile = '../../Data/ISBI2012/ISBI_Train20/Xvalid.mat';
 param.truthFile = '../../Data/ISBI2012/ISBI_Train20/Yvalid.mat';
-param.z = 5;              % which slice to use for visualization
+param.z = [1 7];            % which slice(s) to use for visualization
 param.interactive = 1;
 
 param.pctToTry = [.25 .5 .6:.05:.95];
@@ -24,7 +24,7 @@ Xvalid = permute(Xvalid, [2 3 1]);  % python -> matlab ordering
 load(param.truthFile);
 Yvalid = permute(Yvalid, [2 3 1]);  % python -> matlab ordering
 
-if 1 
+if 0 
     fprintf('[%s]: doing feature analysis - please wait a few moments...\n', mfilename)
     plot_feat_distribution(double(Xvalid(:)), double(Yvalid(:)));
 end
@@ -48,51 +48,45 @@ Yhat = permute(Yhat, [2 3 1]);  % python -> matlab ordering
 Yhat(Yhat<0) = NaN;
 
 
-
-
 %-------------------------------------------------------------------------------
 %% Do analysis
-%if any(isnan(Yhat(:)))
-if 1
-    Yhat2 = inpaint_prob_map(Yhat);
-    [fpr, recall, precision] = perfcurve2(Yvalid, Yhat2);
+
+Yhat2 = inpaint_prob_map(Yhat);
+[fpr, recall, precision] = perfcurve2(Yvalid, Yhat2);
     
-    save('./Yhat2.mat', 'Yhat2', '-v7.3');
-    save('./Yvalid.mat', 'Yvalid', '-v7.3');
+save([fn '.inpainted.mat'], '-v7.3');
+save('./Yvalid.mat', 'Yvalid', '-v7.3');
 
-    % visualize pixel-level classification performance
-    figure;
-    plot(fpr, recall); grid on;
-    xlabel('FPR'); ylabel('TPR');
-    title('pixel-level classification performance');
- 
-    % visualize estimates for one slice
-    figure('Position', [200 200 1200 400]);
-    ha = tight_subplot(1, 3, [.03, .03]);
+% visualize pixel-level classification performance
+figure;
+plot(fpr, recall); grid on;
+xlabel('FPR'); ylabel('TPR');
+title('pixel-level classification performance');
 
-    axes(ha(1));
-    imagesc(Xvalid(:,:,param.z));
-    title(sprintf('data; slice %d', param.z))
-    set(gca, 'Xtick', [], 'Ytick', []);
 
-    axes(ha(2));
-    imagesc(Yvalid(:,:,param.z));
-    title(sprintf('ground truth; slice %d', param.z))
-    set(gca, 'Xtick', [], 'Ytick', []);
+% visualize some estimates
+figure('Position', [200 200 1200 400*length(param.z)]);
+ha = tight_subplot(length(param.z), 3, [.03, .03]);
 
-    axes(ha(3));
-    imagesc(Yhat2(:,:,param.z));
-    title(sprintf('CNN probabilities; slice %d', param.z))
-    set(gca, 'Xtick', [], 'Ytick', []);
-    linkaxes([ha(1) ha(2) ha(3)], 'xy');
-else
-    % TODO: the analysis below goes here.
+for ii = 1:length(param.z)
+    offset = 1+3*(ii-1);
     
-    % visualize pixel-level classification performance
-    figure(1);
-    plot(fpr, recall); grid on;
-    xlabel('FPR'); ylabel('TPR');
-    title('pixel-level classification performance');
+    axes(ha(offset));
+    imagesc(Xvalid(:,:,param.z(ii)));
+    title(sprintf('data; slice %d', param.z(ii)))
+    set(gca, 'Xtick', [], 'Ytick', []);
+
+    axes(ha(offset+1));
+    imagesc(Yvalid(:,:,param.z(ii)));
+    title(sprintf('ground truth; slice %d', param.z(ii)))
+    set(gca, 'Xtick', [], 'Ytick', []);
+
+    axes(ha(offset+2));
+    imagesc(Yhat2(:,:,param.z(ii)));
+    title(sprintf('CNN probabilities; slice %d', param.z(ii)))
+    set(gca, 'Xtick', [], 'Ytick', []);
+    
+    linkaxes([ha(offset) ha(offset+1) ha(offset+2)], 'xy');
 end
 
 
