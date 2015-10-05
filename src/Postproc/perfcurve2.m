@@ -1,5 +1,7 @@
 function [fpr, recall, precision] = perfcurve2(Y, Scores)
 % PERFCURVE2  A faster (but less feature rich) version of Matlab's perfcurve()
+%
+% October 2015, mjp
 
 % Assumes class labels live in [0,1]
 % Any score < 0 will be ignored in this analysis.
