@@ -477,7 +477,6 @@ def _train_network(args):
     else:
         syn_func = lambda V: _xform_minibatch(V, False)
 
-    print(args)
 
     #----------------------------------------
     # Create the Caffe solver
@@ -732,6 +731,8 @@ if __name__ == "__main__":
 	caffe.set_device(args.gpu)
     else:
 	caffe.set_mode_cpu()
+
+    print(args)
 
     # train or deploy
     if args.mode == 'train':
