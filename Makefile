@@ -22,6 +22,8 @@
 #
 # 3. Extract predictions from the Caffe model:
 #      make CNN=lenet-py GPU=1 pycaffe-predict
+#      make CNN=lenet-py GPU=2 EVAL_PCT=.1 pycaffe-predict
+#
 #      make CNN=n3-py GPU=2 pycaffe-predict
 # 
 # 4. To generate timing estimates for Caffe:
@@ -89,8 +91,11 @@ N_TILES=200000
 #    CNN \in {n3, n3-py, lenet, lenet-py}
 # The "-py" models are for pycaffe targets.
 CNN=lenet
-CAFFE_MODEL=iter_022000.caffemodel
+CAFFE_MODEL=iter_080000.caffemodel
 CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
+
+# How much of the volume to evaluate in deploy mode \in [0,1]
+EVAL_PCT=1.0
 
 # You may want to override this from the command line.
 # (see examples above).
@@ -221,9 +226,10 @@ pycaffe-predict:
 		--network $(MODEL_DIR)/$(CNN)-net.prototxt \
 		--model $(OUT_DIR)/$(CAFFE_MODEL) \
 		--x-deploy $(DATA_DIR)/Xvalid.npy \
-		--y-deploy $(DATA_DIR)/Yvalid.npy \
 		--gpu $(GPU) \
-		--out-dir $(OUT_DIR) &
+		--out-dir $(OUT_DIR) \
+		--eval-pct $(EVAL_PCT) \
+		> $(OUT_DIR)/pycaffe.$(CNN).predict.out &
 
 
 #--------------------------------------------------
