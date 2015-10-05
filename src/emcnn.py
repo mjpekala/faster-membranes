@@ -313,6 +313,7 @@ def _xform_minibatch(X, rotate=False):
     augment = np.random.rand() < .5
     if augment and rotate: 
         # rotation by an arbitrary angle 
+        # Note: this is very slow!!
         angle = np.random.rand() * 360.0 
         fillColor = np.max(X) 
         X2 = scipy.ndimage.rotate(X, angle, axes=(2,3), reshape=False, cval=fillColor)
