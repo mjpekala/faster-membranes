@@ -2,6 +2,13 @@
 # This is for a variant of Ciresan's N3 network[1],
 # and is designed for use with PyCaffe.
 #
+# In the first 20 slices of ISBI 2012 there are ~1.2e6
+# positive examples/pixels.  This means 2.4e6 tiles
+# total (since we rebalance classes 50/50).  
+#
+# If a mini-batch contains 100 tiles, this means there 
+# are ~2.4e4 mini-batches in a single epoch.
+#
 # [1] Ciresan et. al. "Deep Neural Networks Segment
 #     Neuronal Membranes in Electron Microscopy Images,"
 #     NIPS 2012.
