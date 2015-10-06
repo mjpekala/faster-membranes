@@ -31,6 +31,7 @@
 # 
 # 5. To generate timing estimates for Caffe con Troll (CcT):
 #      make cct-time-cpu
+#      make cct-fwd-time > fwdtime.txt
 #
 #
 # 6. Extract predictions for CcT:
@@ -262,5 +263,8 @@ caffe-time-cpu:
 #-------------------------------------------------------------------------------
 cct-train:
 	nohup $(CCT) train $(MODEL_DIR)/$(CNN)-solver.prototxt > cct.train.out &
+
+cct-fwd-time:
+	@grep "Forward Pass" cct.train.out | awk '{print $$6}'
 
 
