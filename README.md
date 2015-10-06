@@ -11,6 +11,7 @@ This repository hosts an experiment for segmenting EM images, with the goal of w
 ```
 -  Do either a timing experiment or extract probability estimates.  See
    the Makefile for details.  A quick example is:
-
+```
     make CNN=lenet-py GPU=1 pycaffe-train
     make CNN=lenet-py GPU=1 pycaffe-predict
+```
