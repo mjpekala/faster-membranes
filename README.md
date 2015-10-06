@@ -5,7 +5,7 @@ This repository hosts an experiment for segmenting EM images, with the goal of w
 
 -  Install Caffe (including the Python interface) and Caffe con Troll (CcT).
 -  Edit paths towards the top of the Makefile as needed for your system.
--  Preprocess ISBI2012 by calling 
+-  Preprocess the ISBI 2012 data set via:
 ```
     make data
 ```
