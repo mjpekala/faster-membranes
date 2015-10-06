@@ -251,11 +251,10 @@ caffe-time-gpu:
 
 
 caffe-time-cpu:
-	nohup $(CAFFE) time \
+	$(CAFFE) time \
 		-model $(MODEL_DIR)/$(CNN)-net.prototxt \
 		-weights $(OUT_DIR)/$(CAFFE_MODEL) \
-		-iterations $(NITERS) -gpu $(GPU) \
-		> caffe.time.cpu.out &
+		-iterations $(NITERS)
 
 
 #-------------------------------------------------------------------------------
@@ -265,10 +264,3 @@ cct-train:
 	nohup $(CCT) train $(MODEL_DIR)/$(CNN)-solver.prototxt > cct.train.out &
 
 
-# TODO: fix this
-cct-time-cpu:
-	nohup $(CCT) test $(SOLVER) -i $(CCT_MODEL) > cct.time.cpu.out &
-
-
-cct-clean :
-	\rm -f train_preprocessed.bin val_preprocessed.bin
