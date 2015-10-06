@@ -8,7 +8,6 @@ addpath('./tight_subplot');
 param=struct();
 param.emFile = '../../Data/ISBI2012/ISBI_Train20/Xvalid.mat';
 param.truthFile = '../../Data/ISBI2012/ISBI_Train20/Yvalid.mat';
-param.z = [1 7];            % which slice(s) to use for visualization
 param.interactive = 1;
 
 param.pctToTry = [.25 .5 .6:.05:.95];
@@ -57,37 +56,51 @@ Yhat2 = inpaint_prob_map(Yhat);
 save([fn '.inpainted.mat'], '-v7.3');
 save('./Yvalid.mat', 'Yvalid', '-v7.3');
 
+%----------------------------------------
 % visualize pixel-level classification performance
+%----------------------------------------
 figure;
 plot(fpr, recall); grid on;
 xlabel('FPR'); ylabel('TPR');
 title('pixel-level classification performance');
 
 
-% visualize some estimates
-figure('Position', [200 200 1200 400*length(param.z)]);
-ha = tight_subplot(length(param.z), 3, [.03, .03]);
+%----------------------------------------
+% visualize some slices
+%----------------------------------------
+z = [1 5 10];
 
-for ii = 1:length(param.z)
-    offset = 1+3*(ii-1);
-    
-    axes(ha(offset));
-    imagesc(Xvalid(:,:,param.z(ii)));
-    title(sprintf('data; slice %d', param.z(ii)))
-    set(gca, 'Xtick', [], 'Ytick', []);
-
-    axes(ha(offset+1));
-    imagesc(Yvalid(:,:,param.z(ii)));
-    title(sprintf('ground truth; slice %d', param.z(ii)))
-    set(gca, 'Xtick', [], 'Ytick', []);
-
-    axes(ha(offset+2));
-    imagesc(Yhat2(:,:,param.z(ii)));
-    title(sprintf('CNN probabilities; slice %d', param.z(ii)))
-    set(gca, 'Xtick', [], 'Ytick', []);
-    
-    linkaxes([ha(offset) ha(offset+1) ha(offset+2)], 'xy');
+figure('Position', [200 200 1200 400])
+ha = tight_subplot(1, 3, [.03, .03]);
+for ii = 1:length(z)
+  axes(ha(ii));
+  imagesc(Yvalid(:,:,z(ii)));
+  title(sprintf('Yvalid; slice %d', z(ii)));
+  set(gca, 'Xtick', [], 'Ytick', []);
 end
+saveas(gcf, [fn '.truth.eps'], 'epsc');
+
+
+figure('Position', [200 200 1200 400])
+ha = tight_subplot(1, 3, [.03, .03]);
+for ii = 1:length(z)
+  axes(ha(ii));
+  imagesc(Yhat(:,:,z(ii)));
+  title(sprintf('CNN estimate; slice %d', z(ii)));
+  set(gca, 'Xtick', [], 'Ytick', []);
+end
+saveas(gcf, [fn '.cnn.eps'], 'epsc');
+
+
+figure('Position', [200 200 1200 400])
+ha = tight_subplot(1, 3, [.03, .03]);
+for ii = 1:length(z)
+  axes(ha(ii));
+  imagesc(Yhat2(:,:,z(ii)));
+  title(sprintf('inpainted; slice %d', z(ii)));
+  set(gca, 'Xtick', [], 'Ytick', []);
+end
+saveas(gcf, [fn '.inpainted.eps'], 'epsc');
 
 
 
