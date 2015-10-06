@@ -12,30 +12,28 @@
 #    delete the existing LMDB database. Do this via:
 #       make data-clean
 #
-# 2. Train models using Caffe (command line and/or pycaffe).
-#    This can take a long time; hence we nohup these implicitly:
+# 2. Extract probability maps.  This requires you (a) train a model
+#    using pycaffe and then (b) deploy the model on the validation set.
+#    This can take a long time; hence we nohup these tasks implicitly.
+#    
+#    Example: training and deploying the "lenet" model:
 #       make CNN=lenet-py GPU=1 pycaffe-train
-#       make CNN=n3-py GPU=2 pycaffe-train
-#       make CNN=lenet GPU=3 caffe-train
-#       make CNN=n3 GPU=4 caffe-train
-#       make CNN=lenet cct-train
+#       make CNN=lenet-py GPU=1 pycaffe-predict
+#                    - or - 
+#       make CNN=lenet-py GPU=2 EVAL_PCT=.1 pycaffe-predict
 #
-# 3. Extract predictions from the Caffe model:
-#      make CNN=lenet-py GPU=1 pycaffe-predict
-#      make CNN=lenet-py GPU=2 EVAL_PCT=.1 pycaffe-predict
+#    Example: training and deploying the "N3" model:
+#       do exactly the same as above but with CNN=n3
 #
+# 3. To generate timing estimates for Caffe:
+#      make CNN=lenet GPU=3 caffe-train
+#      make CNN=lenet GPU=4 caffe-time-gpu
+#      make CNN=lenet caffe-time-cpu
 # 
-# 4. To generate timing estimates for Caffe:
-#      make caffe-time-gpu
-#      make caffe-time-cpu
-# 
-# 5. To generate timing estimates for Caffe con Troll (CcT):
-#      make cct-time-cpu
+# 4. To generate timing estimates for Caffe con Troll (CcT):
+#      make cct-train
 #      make cct-fwd-time > fwdtime.txt
 #
-#
-# 6. Extract predictions for CcT:
-#      TODO: this is going to require some new code.
 #
 # NOTES:
 # o For CcT compatability, we create LMDB databases that contain many 
