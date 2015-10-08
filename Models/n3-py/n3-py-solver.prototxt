@@ -29,7 +29,7 @@ test_interval: 500
 #--------------------------------------------------
 lr_policy: "step"   # vs. "inv"
 max_iter: 400000
-stepsize: 100000
+stepsize: 130000
 
 base_lr: 0.01
 momentum: 0.9
