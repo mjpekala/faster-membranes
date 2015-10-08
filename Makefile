@@ -6,11 +6,11 @@
 # 
 # 1. Preprocess ISBI data set (e.g. create LMDB databases).
 #    You should only need to do this once:
-#       make data
+#       make lmdb
 #
 #    If you want to re-generate at some point, you must first
 #    delete the existing LMDB database. Do this via:
-#       make data-clean
+#       make lmdb-clean
 #
 # 2. Extract probability maps.  This requires you (a) train a model
 #    using pycaffe and then (b) deploy the model on the validation set.
@@ -23,16 +23,16 @@
 #       make CNN=lenet-py GPU=2 EVAL_PCT=.1 pycaffe-predict
 #
 #    Example: training and deploying the "N3" model:
-#       do exactly the same as above but with CNN=n3
+#       (do exactly the same as above but with CNN=n3)
 #
 # 3. To generate timing estimates for Caffe:
-#      make CNN=lenet GPU=3 caffe-train
-#      make CNN=lenet GPU=4 caffe-time-gpu
-#      make CNN=lenet caffe-time-cpu
+#       make CNN=lenet GPU=3 caffe-train
+#       make CNN=lenet GPU=4 caffe-time-gpu
+#       make CNN=lenet caffe-time-cpu
 # 
 # 4. To generate timing estimates for Caffe con Troll (CcT):
-#      make cct-train
-#      make cct-fwd-time > fwdtime.txt
+#       make cct-train
+#       make cct-fwd-time > fwdtime.txt
 #
 #
 # NOTES:
@@ -54,63 +54,18 @@ PROJ_NAME := $(notdir $(BASE_DIR))
 
 
 #-------------------------------------------------------------------------------
-# MACROS you *need* to configure for your particular system.
-#
-#-------------------------------------------------------------------------------
+include make.config
 
-# I assume caffe and caffe-ct are in your path; if not
-# update these macros accordingly
-#
-# Update PYCAFFE as appropriate for your caffe
-PYCAFFE=/home/pekalmj1/Apps/caffe/python
-CAFFE=caffe
-CCT=caffe-ct
 
 
 #-------------------------------------------------------------------------------
-# MACROS you may want to change to control the experimental setup
-#
-#-------------------------------------------------------------------------------
-
-# Experiment parameters related to the data set.
-# You can put different train/test splits into different "experiments".
-#
-# Note: if you change the EXPERIMENT, you'll need to manually hack
-#       the caffe *.net files (at least for the command-line version)
-#
-EXPERIMENT=ISBI_Train20
-S_TRAIN="range(0,20)"
-S_VALID="range(20,30)"
-S_TEST="[]"
-N_TILES=200000
-
-
-# Specify which CNN and model to use.
-#    CNN \in {n3, n3-py, lenet, lenet-py}
-# The "-py" models are for pycaffe targets.
-CNN=lenet
-CAFFE_MODEL=iter_080000.caffemodel
-CCT_MODEL=trained_model.bin.25-09-2015-04-46-54
-
-# Extra synthetic data augmentation during training?
-ROTATE=0
-
-# How much of the volume to evaluate in deploy mode \in [0,1]
-EVAL_PCT=1.0
-
-# You may want to override this from the command line.
-# (see examples above).
-# On our cluster, you should avoid using gpu 0.
-GPU=1
-
-
-#-------------------------------------------------------------------------------
-# MACROS you can probably ignore...
+# MACROS that are system-independent (you can probably ignore these)
 # 
 #-------------------------------------------------------------------------------
 
 SRC=$(BASE_DIR)/src
-DATA_DIR=$(BASE_DIR)/Data/ISBI2012/$(EXPERIMENT)
+DATA_DIR=$(BASE_DIR)/Data/ISBI2012
+LMDB_DIR=$(BASE_DIR)/Data/ISBI2012/$(EXPERIMENT)
 MODEL_DIR=$(BASE_DIR)/Models/$(CNN)
 OUT_DIR=$(MODEL_DIR)/$(EXPERIMENT)
 
@@ -132,9 +87,11 @@ TAR=$(PROJ_NAME).tar
 #-------------------------------------------------------------------------------
 default:
 	@echo ""
-	@echo $(BASE_DIR)
-	@echo $(DATA_DIR)
-	@echo $(OUT_DIR)
+	@echo "Experiment:  $(EXPERIMENT)"
+	@echo "Base dir:    $(BASE_DIR)"
+	@echo "Data dir:    $(DATA_DIR)"
+	@echo "Output dir:  $(OUT_DIR)"
+	@echo "Using caffe: $(PYCAFFE)"
 	@echo ""
 	@echo "Please explicitly choose a target"
 
@@ -157,34 +114,34 @@ tar :
 # You have to do this (just once) before running any other targets.
 #-------------------------------------------------------------------------------
 
-data:
+lmdb:
 	@$(PY) $(SRC)/preprocess.py \
 		-X $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
 		-Y $(BASE_DIR)/Data/ISBI2012/train-labels.tif \
-		--train-slices $(S_TRAIN) \
-		--valid-slices $(S_VALID) \
-		--test-slices $(S_TEST) \
+		--train-slices $(SLICE_TRAIN) \
+		--valid-slices $(SLICE_VALID) \
+		--test-slices $(SLICE_TEST) \
 		--brightness-quantile 1.0 \
-		--out-dir $(DATA_DIR)
+		--out-dir $(LMDB_DIR)
 
 	@$(PY) $(SRC)/make_lmdb.py \
-		-X $(DATA_DIR)/Xtrain.npy \
-		-Y $(DATA_DIR)/Ytrain.npy \
+		-X $(LMDB_DIR)/Xtrain.npy \
+		-Y $(LMDB_DIR)/Ytrain.npy \
 		--num-examples $(N_TILES) \
-		-o $(DATA_DIR)/train.lmdb
+		-o $(LMDB_DIR)/train.lmdb
 
 	@$(PY) $(SRC)/make_lmdb.py \
-		-X $(DATA_DIR)/Xvalid.npy \
-		-Y $(DATA_DIR)/Yvalid.npy \
+		-X $(LMDB_DIR)/Xvalid.npy \
+		-Y $(LMDB_DIR)/Yvalid.npy \
 		--num-examples $(N_TILES) \
-		-o $(DATA_DIR)/valid.lmdb
+		-o $(LMDB_DIR)/valid.lmdb
 
 
 # Deletes data preprocessing
-data-clean:
-	\rm -rf $(DATA_DIR)/{train,valid}.lmdb 
-	\rm -f $(DATA_DIR)/{X,Y}*npy
-	\rm -f $(DATA_DIR)/{X,Y}*mat
+lmdb-clean:
+	\rm -rf $(LMDB_DIR)/{train,valid}.lmdb 
+	\rm -f $(LMDB_DIR)/{X,Y}*npy
+	\rm -f $(LMDB_DIR)/{X,Y}*mat
 
 
 #-------------------------------------------------------------------------------
@@ -196,9 +153,12 @@ data-clean:
 # 
 #   a) Command-line caffe and pre-computed tiles
 #      stored in an LMDB database
+#      (this enables timing comparisons with CcT)
 #      
-#   b) PyCaffe and dynamically "lazily" created tiles
-#      (this is a much larger data set)
+#   b) PyCaffe and "lazily" created tiles
+#      (this uses more of the available data and is
+#       recommended if you care about classification
+#       performance)
 #      
 #--------------------------------------------------
 caffe-train:
@@ -212,10 +172,12 @@ caffe-train:
 pycaffe-train:
 	@mkdir -p $(OUT_DIR)
 	$(PYNOHUP) $(SRC)/emcnn.py \
-		--x-train $(DATA_DIR)/Xtrain.npy \
-		--y-train $(DATA_DIR)/Ytrain.npy \
-		--x-valid $(DATA_DIR)/Xvalid.npy \
-		--y-valid $(DATA_DIR)/Yvalid.npy \
+		--x-train $(DATA_DIR)/train-volume.tif \
+		--y-train $(DATA_DIR)/train-labels.tif \
+		--train-slices $(SLICE_TRAIN) \
+		--x-valid $(DATA_DIR)/train-volume.tif \
+		--y-valid $(DATA_DIR)/train-labels.tif \
+		--valid-slices $(SLICE_VALID) \
 		--solver $(MODEL_DIR)/$(CNN)-solver.prototxt \
 		--rotate-data $(ROTATE) \
 		--gpu $(GPU) \
@@ -227,11 +189,22 @@ pycaffe-predict:
 	$(PYNOHUP) $(SRC)/emcnn.py \
 		--network $(MODEL_DIR)/$(CNN)-net.prototxt \
 		--model $(OUT_DIR)/$(CAFFE_MODEL) \
-		--x-deploy $(DATA_DIR)/Xvalid.npy \
+		--x-deploy $(DATA_DIR)/train-volume.tif \
 		--gpu $(GPU) \
 		--out-dir $(OUT_DIR) \
 		--eval-pct $(EVAL_PCT) \
 		> $(OUT_DIR)/pycaffe.$(CNN).predict.out &
+
+
+pycaffe-predict-test:
+	$(PYNOHUP) $(SRC)/emcnn.py \
+		--network $(MODEL_DIR)/$(CNN)-net.prototxt \
+		--model $(OUT_DIR)/$(CAFFE_MODEL) \
+		--x-deploy $(DATA_DIR)/test-volume.tif \
+		--gpu $(GPU) \
+		--out-dir $(OUT_DIR) \
+		--eval-pct $(EVAL_PCT) \
+		> $(OUT_DIR)/pycaffe.$(CNN).predict.test.out &
 
 
 #--------------------------------------------------
