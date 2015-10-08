@@ -21,6 +21,7 @@ o Your convolutional neural network (CNN) must have the following
       prob   |  Softmax          |  Extracting estimates
 
 o The data volume (denoted X in this code) has values in [0 255]
+  (this is the case for ISBI 2012)
 
 o The labels volume (denoted Y) are integer valued.  
   Any pixels with negative "labels" are ignored during processing.
@@ -80,6 +81,14 @@ def _train_mode_args():
     parser.add_argument('--omit-labels', dest='omitLabels', 
 		    type=str, default='[]', 
 		    help='(optional) list of additional labels to omit')
+    
+    parser.add_argument('--train-slices', dest='trainSlices', 
+		    type=str, default='', 
+		    help='(optional) limit to a subset of X/Y train')
+    
+    parser.add_argument('--valid-slices', dest='validSlices', 
+		    type=str, default='', 
+		    help='(optional) limit to a subset of X/Y validation')
 
     return parser
 
@@ -104,6 +113,10 @@ def _deploy_mode_args():
     parser.add_argument('--eval-pct', dest='evalPct', 
 		    type=float, default=1.0,
 		    help='what percentage of pixels to evaluate in each slice')
+    
+    parser.add_argument('--deploy-slices', dest='deploySlices', 
+		    type=str, default='', 
+		    help='(optional) limit to a subset of X/Y deploy volume')
 
     return parser
 
@@ -136,20 +149,19 @@ def _get_args():
 		    type=str, default='', 
 		    help='(optional) overrides the snapshot directory')
 
-    parser.add_argument('--only-slices', dest='onlySlices', 
-		    type=str, default='', 
-		    help='(optional) limit experiment to a subset of slices')
-
     args = parser.parse_args()
     args.mode = mode
 
 
-    # map strings to python objects (a little gross, but ok for now...) 
+    # map strings to python objects; XXX: a better way than eval()
     if (args.mode == 'train') and args.omitLabels: 
         args.omitLabels = eval(args.omitLabels)
 
-    if args.onlySlices: 
-        args.onlySlices = eval(args.onlySlices)
+    if (args.mode == 'train') and args.trainSlices: 
+        args.trainSlices = eval(args.trainSlices)
+        
+    if (args.mode == 'deploy') and args.deploySlices: 
+        args.deploySlices = eval(args.deploySlices)
 
     return args
 
@@ -178,8 +190,11 @@ def _print_net(net):
             print("    blob %d has size %s" % (jj, str(blob.data.shape)))
 
 
+            
 def _omit_labels(Y, extraOmits=[]):
-    """Determines specificly which labels to omit.
+    """Determines which labels to omit.
+    
+    This is the uniont of the set of all negative labels in Y with the set extraOmits.
     """
     # we always omit labels < 0
     omitLabels = np.unique(Y)
@@ -198,7 +213,7 @@ def _omit_labels(Y, extraOmits=[]):
 
 
 
-def _load_data(xName, yName, args, tileSize):
+def _load_data(xName, yName, tileRadius, onlySlices, omitLabels=None):
     """Loads data sets and does basic preprocessing.
     """
     X = emlib.load_cube(xName, np.float32)
@@ -208,14 +223,14 @@ def _load_data(xName, yName, args, tileSize):
     assert(X.shape[0] < X.shape[1])
     assert(X.shape[0] < X.shape[2])
 
-    if args.onlySlices: 
-        X = X[args.onlySlices,:,:] 
+    if onlySlices: 
+        X = X[onlySlices,:,:] 
     print('[emCNN]:    data shape: %s' % str(X.shape))
 
-    X = emlib.mirror_edges(X, tileSize)
+    X = emlib.mirror_edges(X, tileRadius)
 
     # Scale data to live in [0 1].
-    # I'm assuming original data is in [0 255]
+    # *** ASSUMPTION *** original data is in [0 255]
     if np.max(X) > 1:
         X = X / 255.
 
@@ -224,19 +239,28 @@ def _load_data(xName, yName, args, tileSize):
     if yName: 
         Y = emlib.load_cube(yName, np.float32)
 
-        if args.onlySlices: 
-            Y = Y[args.onlySlices,:,:] 
+        if onlySlices: 
+            Y = Y[onlySlices,:,:] 
         print('[emCNN]:    labels shape: %s' % str(Y.shape))
+
+        # ** ASSUMPTION **: Special case code for membrane detection / ISBI volume
+        yAll = np.unique(Y)
+        yAll.sort() # TODO
+        if (len(yAll) == 2) and (yAll[0] == 0) and (yAll[1] == 255):
+            print('[emCNN]:    ISBI-style labels detected.  converting 0->1, 255->0')
+            Y[Y==0] = 1;      #  membrane
+            Y[Y==255] = 0;    #  non-membrane
 
         # Labels must be natural numbers (contiguous integers starting at 0)
         # because they are mapped to indices at the output of the network.
         # This next bit of code remaps the native y values to these indices.
-        omitLabels, ignored = _omit_labels(Y, args.omitLabels)
+        omitLabels, pctOmitted = _omit_labels(Y, omitLabels)
         Y = emlib.fix_class_labels(Y, omitLabels).astype(np.int32)
 
         print('[emCNN]:    yAll is %s' % str(np.unique(Y)))
+        print('[emCNN]:    will use %0.2f%% of training volume' % (100.0 - pctOmitted))
 
-        Y = emlib.mirror_edges(Y, tileSize)
+        Y = emlib.mirror_edges(Y, tileRadius)
 
         return X, Y
     else:
@@ -266,7 +290,7 @@ class TrainInfo:
             raise ValueError('Sorry - I only support SGD at this time')
 
         # keeps track of the current mini-batch iteration and how
-        # long the processing has taken so var
+        # long the processing has taken so far
         self.iter = 0
         self.epoch = 0
         self.cnnTime = 0
@@ -297,7 +321,7 @@ class TrainInfo:
 
 
 
-def _xform_minibatch(X, rotate=False):
+def _xform_minibatch(X, rotate=False, prob=0.5):
     """Synthetic data augmentation for one mini-batch.
     
     Parameters: 
@@ -305,6 +329,8 @@ def _xform_minibatch(X, rotate=False):
        
        rotate := a boolean; when true, will rotate the mini-batch X
                  by some angle in [0, 2*pi)
+
+       prob := a scalar in [0,1]; probability of augmenting data
 
     Note: for some reason, the implementation of row and column reversals, e.g.
                X[:,:,::-1,:]
@@ -314,8 +340,8 @@ def _xform_minibatch(X, rotate=False):
           Hence the explicit construction of X2 with order 'C'.
 
     """
-
-    augment = np.random.rand() < .5
+    augment = np.random.rand() < prob
+    
     if augment and rotate: 
         # rotation by an arbitrary angle 
         # Note: this is very slow!!
@@ -495,18 +521,21 @@ def _train_network(args):
     # Load data
     #----------------------------------------
     bs = border_size(batchDim)
+    print "[emCNN]: tile radius is: %d" % bs
+    
     print "[emCNN]: loading training data..."
     Xtrain, Ytrain = _load_data(args.emTrainFile,
-            args.labelsTrainFile, 
-            args, bs)
+            args.labelsTrainFile,
+            tileRadius=bs,
+            onlySlices=args.trainSlices,
+            omitLabels=args.omitLabels)
+    
     print "[emCNN]: loading validation data..."
     Xvalid, Yvalid = _load_data(args.emValidFile,
-            args.labelsValidFile, 
-            args, bs)
-    print "[emCNN]: tile radius is: %d" % bs
-
-    omitLabels, pctOmitted = _omit_labels(Ytrain, args.omitLabels)
-    print('[emCNN]:    will use %0.2f%% of training volume' % (100-pctOmitted))
+            args.labelsValidFile,
+            tileRadius=bs,
+            onlySlices=args.validSlices,
+            omitLabels=args.omitLabels)
 
     #----------------------------------------
     # Do training; save results
@@ -683,7 +712,10 @@ def _deploy_network(args):
     #----------------------------------------
     bs = border_size(batchDim)
     print "[emCNN]: loading deploy data..."
-    Xdeploy = _load_data(args.emDeployFile, None, args, bs)
+    Xdeploy = _load_data(args.emDeployFile,
+                         None,
+                         tileRadius=bs,
+                         onlySlices=args.deploySlices)
     print "[emCNN]: tile dimension is: %d" % bs
 
     # Create a mask volume (vs list of labels to omit) due to API of emlib
@@ -726,7 +758,9 @@ def _deploy_network(args):
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
     args = _get_args()
-    
+
+    # these are imported here to facilitate unit testing on machines that
+    # don't have caffe
     import caffe
     from caffe.proto import caffe_pb2
     from google.protobuf import text_format
