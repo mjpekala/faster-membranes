@@ -159,6 +159,9 @@ def _get_args():
 
     if (args.mode == 'train') and args.trainSlices: 
         args.trainSlices = eval(args.trainSlices)
+
+    if (args.mode == 'train') and args.validSlices: 
+        args.validSlices = eval(args.validSlices)
         
     if (args.mode == 'deploy') and args.deploySlices: 
         args.deploySlices = eval(args.deploySlices)
@@ -547,7 +550,7 @@ def _train_network(args):
         print "[emCNN]: Starting epoch %d" % trainInfo.epoch
         train_one_epoch(solver, Xtrain, Ytrain, 
             trainInfo, batchDim, outDir, 
-            omitLabels=omitLabels,
+            omitLabels=args.omitLabels,
             data_augment=syn_func)
 
         print "[emCNN]: Making predictions on validation data..."
