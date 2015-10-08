@@ -26,9 +26,9 @@
 #       (do exactly the same as above but with CNN=n3)
 #
 # 3. To generate timing estimates for Caffe:
-#       make CNN=lenet GPU=3 caffe-train
-#       make CNN=lenet GPU=4 caffe-time-gpu
-#       make CNN=lenet caffe-time-cpu
+#       make CNN=lenet-lmdb GPU=3 caffe-train
+#       make CNN=lenet-lmdb GPU=4 caffe-time-gpu
+#       make CNN=lenet-lmdb caffe-time-cpu
 # 
 # 4. To generate timing estimates for Caffe con Troll (CcT):
 #       make cct-train
