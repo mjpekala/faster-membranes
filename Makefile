@@ -31,8 +31,8 @@
 #       make CNN=lenet-lmdb caffe-time-cpu
 # 
 # 4. To generate timing estimates for Caffe con Troll (CcT):
-#       make cct-train
-#       make cct-fwd-time > fwdtime.txt
+#       make CNN=lenet-lmdb cct-train
+#       make CNN=lenet-lmdb cct-fwd-time > fwdtime.txt
 #
 #
 # NOTES:
