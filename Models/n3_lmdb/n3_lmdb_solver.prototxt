@@ -1,6 +1,6 @@
 
 # The train/test net protocol buffer definition
-net: "./Models/n3-lmdb/n3-lmdb-net.prototxt"
+net: "./Models/n3_lmdb/n3_lmdb_net.prototxt"
 
 # test_iter     := how many forward passes the test should carry out.
 # test_interval := how frequently to test (every N training iterations)
@@ -27,7 +27,7 @@ max_iter: 200000
 
 # snapshot intermediate results
 snapshot: 2000
-snapshot_prefix: "./Models/n3-lmdb/"
+snapshot_prefix: "./Models/n3_lmdb/"
 
 # solver mode: CPU or GPU
 solver_mode: CPU   # CPU or GPU
