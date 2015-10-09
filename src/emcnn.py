@@ -40,6 +40,7 @@ __license__ = "Apache 2.0"
 
 import sys, os, argparse, time, datetime
 from pprint import pprint
+from random import shuffle
 import pdb
 
 import numpy as np
@@ -333,36 +334,55 @@ def _xform_minibatch(X, rotate=False, prob=0.5):
        rotate := a boolean; when true, will rotate the mini-batch X
                  by some angle in [0, 2*pi)
 
-       prob := a scalar in [0,1]; probability of augmenting data
+       prob := probability of applying any given operation
 
     Note: for some reason, the implementation of row and column reversals, e.g.
                X[:,:,::-1,:]
           break PyCaffe.  Numpy must be doing something under the hood 
           (e.g. changing from C order to Fortran order) to implement this 
           efficiently which is incompatible w/ PyCaffe.  
-          Hence the explicit construction of X2 with order 'C'.
-
+          Hence the explicit construction of X2 with order 'C' in the
+          nested functions below.
     """
-    augment = np.random.rand() < prob
-    
-    if augment and rotate: 
+
+    def fliplr(X):
+        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
+        X2[:,:,:,:] = X[:,:,::-1,:]
+        return X2
+
+    def flipud(X):
+        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
+        X2[:,:,:,:] = X[:,:,:,::-1]
+        return X2
+
+    def transpose(X):
+        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
+        X2[:,:,:,:] = np.transpose(X, [0, 1, 3, 2])
+        return X2
+
+    def identity(X): return X
+
+    prob = min(1.0, prob)
+    prob = max(0.0, prob)
+
+    if rotate: 
         # rotation by an arbitrary angle 
         # Note: this is very slow!!
+        # Note: this should probably be implemented at a higher level
+        #       (than the individual mini-batch) so we can incorporate
+        #       context rather than filling in pixels.
         angle = np.random.rand() * 360.0 
         fillColor = np.max(X) 
         X2 = scipy.ndimage.rotate(X, angle, axes=(2,3), reshape=False, cval=fillColor)
-    elif augment:
-        # Mirror about the x-axis or y-axis
-        X2 = np.zeros(X.shape, dtype=np.float32, order='C')
-        if np.random.rand() < .5: 
-            # fliplr
-            X2[:,:,:,:] = X[:,:,::-1,:]
-        else: 
-            # flipud
-            X2[:,:,:,:] = X[:,:,:,::-1]
     else:
-        # No transformation - use input data
-        X2 = X
+        ops = []
+        ops.append( fliplr if np.random.rand() < prob else identity )
+        ops.append( flipud if np.random.rand() < prob else identity )
+        ops.append( transpose if np.random.rand() < prob else identity )
+        shuffle(ops)
+        X2 = ops[0](X)
+        for op in ops[1:]:
+            X2 = op(X2)
 
     return X2
 
