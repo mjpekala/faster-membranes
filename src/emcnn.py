@@ -484,9 +484,9 @@ def train_one_epoch(solver, X, Y,
             print "[emCNN]:     %0.2f min elapsed (%0.2f CNN min)" % (trainInfo.netTime/60., trainInfo.cnnTime/60.)
             print "[emCNN]:     alpha=%0.4e" % (trainInfo.alpha)
             if loss: 
-                print "[emCNN]:     loss=%0.2f" % loss
+                print "[emCNN]:     loss=%0.3f" % loss
             if acc: 
-                print "[emCNN]:     accuracy (train volume)=%0.2f" % acc
+                print "[emCNN]:     accuracy (train volume)=%0.3f" % acc
             sys.stdout.flush()
  
         if trainInfo.iter >= trainInfo.param.max_iter:
