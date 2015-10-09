@@ -1,7 +1,7 @@
 # The train/test net protocol buffer definition
 # Assumes you will be running Caffe/CcT from the parent directory
 
-net: "./Models/lenet-lmdb/lenet-lmdb-net.prototxt"
+net: "./Models/lenet_lmdb/lenet_lmdb_net.prototxt"
 
 # test_iter     := how many forward passes the test should carry out.
 # test_interval := how frequently to test (every N training iterations)
@@ -24,6 +24,6 @@ max_iter: 80000
 # snapshot intermediate results
 snapshot: 2000
 
-snapshot_prefix: "./Models/lenet-lmdb/"
+snapshot_prefix: "./Models/lenet_lmdb/"
 # solver mode: CPU or GPU
 # solver_mode: CPU
