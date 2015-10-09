@@ -1,6 +1,6 @@
 # faster-membranes
 This repository hosts an experiment for segmenting EM images, with the
-goal of higher throughput relative to brute-force application of sliding window CNNs to all pixels in a volume.
+goal of higher throughput relative to exhaustive application of sliding window CNNs.
 
 This code is in an experimental state and subject to change.
 
