@@ -17,22 +17,22 @@
 #    This can take a long time; hence we nohup these tasks implicitly.
 #    
 #    Example: training and deploying the "lenet" model:
-#       make CNN=lenet-py GPU=1 pycaffe-train
-#       make CNN=lenet-py GPU=1 pycaffe-predict
+#       make CNN=lenet_py GPU=1 pycaffe-train
+#       make CNN=lenet_py GPU=1 pycaffe-predict
 #                    - or - 
-#       make CNN=lenet-py GPU=2 EVAL_PCT=.1 pycaffe-predict
+#       make CNN=lenet_py GPU=2 EVAL_PCT=.1 pycaffe-predict
 #
 #    Example: training and deploying the "N3" model:
-#       (do exactly the same as above but with CNN=n3)
+#       (do exactly the same as above but with CNN=n3_py)
 #
 # 3. To generate timing estimates for Caffe:
-#       make CNN=lenet-lmdb GPU=3 caffe-train
-#       make CNN=lenet-lmdb GPU=4 caffe-time-gpu
-#       make CNN=lenet-lmdb caffe-time-cpu
+#       make CNN=lenet_lmdb GPU=3 caffe-train
+#       make CNN=lenet_lmdb GPU=4 caffe-time-gpu
+#       make CNN=lenet_lmdb caffe-time-cpu
 # 
 # 4. To generate timing estimates for Caffe con Troll (CcT):
-#       make CNN=lenet-lmdb cct-train
-#       make CNN=lenet-lmdb cct-fwd-time > fwdtime.txt
+#       make CNN=lenet_lmdb cct-train
+#       make CNN=lenet_lmdb cct-fwd-time > fwdtime.txt
 #
 #
 # NOTES:
