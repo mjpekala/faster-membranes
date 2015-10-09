@@ -28,8 +28,8 @@ test_interval: 500
 # Learning rate parameters
 #--------------------------------------------------
 lr_policy: "step"   # vs. "inv"
-max_iter: 400000
-stepsize: 130000
+max_iter: 600000
+stepsize: 200000
 
 base_lr: 0.01
 momentum: 0.9
