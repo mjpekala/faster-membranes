@@ -1,7 +1,6 @@
 # faster-membranes
 This repository hosts an experiment for segmenting EM images, with the
-goal of working more quickly than brute-force application of CNNs on a
-per-pixel basis.
+goal of higher throughput relative to brute-force application of sliding window CNNs to all pixels in a volume.
 
 This code is in an experimental state and subject to change.
 
@@ -15,6 +14,7 @@ This code is in an experimental state and subject to change.
     make CNN=n3_py GPU=1 isbi2012-train
     make CNN=n3_py GPU=1 EVAL_PCT=.1 isbi2012-deploy
 ```
+  Outputs will be placed in the "Experiments" subdirectory.
 
 -  To run timing estimates for CcT vs Caffe:
 ```
