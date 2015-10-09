@@ -249,7 +249,7 @@ def _load_data(xName, yName, tileRadius, onlySlices, omitLabels=None):
 
         # ** ASSUMPTION **: Special case code for membrane detection / ISBI volume
         yAll = np.unique(Y)
-        yAll.sort() # TODO
+        yAll.sort()
         if (len(yAll) == 2) and (yAll[0] == 0) and (yAll[1] == 255):
             print('[emCNN]:    ISBI-style labels detected.  converting 0->1, 255->0')
             Y[Y==0] = 1;      #  membrane
@@ -411,7 +411,7 @@ def train_one_epoch(solver, X, Y,
 
     """
 
-    # Pre-allocate some variables & storate.
+    # Pre-allocate some variables & storage.
     #
     tileRadius = int(batchDim[2]/2)
     Xi = np.zeros(batchDim, dtype=np.float32)
@@ -460,7 +460,7 @@ def train_one_epoch(solver, X, Y,
 
         # (try to) extract some useful info from the net
         loss = out.get('loss', None)
-        acc = out.get('acc', None)  # accuracy is not required...
+        acc = out.get('acc', None)
 
         # update run statistics
         trainInfo.cnnTime += time.time() - _tmp
