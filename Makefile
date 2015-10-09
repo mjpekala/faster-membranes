@@ -96,7 +96,7 @@ default:
 	@echo "Please explicitly choose a target"
 
 
-tar :
+tar:
 	\rm -f $(BASE_DIR)/$(TAR)
 	pushd $(BASE_DIR)/.. && tar cvf $(TAR) `find ./$(PROJ_NAME) -name \*.py -print`
 	pushd $(BASE_DIR)/.. && tar rvf $(TAR) `find ./$(PROJ_NAME) -name \*.m -print`
@@ -106,6 +106,10 @@ tar :
 	pushd $(BASE_DIR)/.. && tar rvf $(TAR) `find ./$(PROJ_NAME) -name Makefile -print`
 	pushd $(BASE_DIR)/.. && tar rvf $(TAR) `find ./$(PROJ_NAME) -name \*.prototxt -print`
 
+
+unittest:
+	$(PY) tests/test_emlib.py
+	$(PY) tests/test_emcnn.py
 
 
 #-------------------------------------------------------------------------------
