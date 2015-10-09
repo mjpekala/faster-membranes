@@ -17,6 +17,6 @@ This code is in an experimental state and subject to change.
 -  Do either a timing experiment or extract probability estimates.  See
    the Makefile for details.  A quick example is:
 ```
-    make CNN=n3_py GPU=1 pycaffe-train
-    make CNN=n3_py GPU=1 EVAL_PCT=.1 pycaffe-predict
+    make CNN=n3_py GPU=1 isbi2012-train
+    make CNN=n3_py GPU=1 EVAL_PCT=.1 isbi2012-deploy
 ```
