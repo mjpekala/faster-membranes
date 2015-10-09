@@ -46,8 +46,10 @@ class TestEmcnn(unittest.TestCase):
         numDiff = 0
         for ii in range(30):
             Xprime = emcnn._xform_minibatch(X,prob=0.9)
-            self.assertTrue(np.any(Xprime > 0))  # make sure didn't nuke data
             if np.any(X != Xprime): numDiff += 1
+            # make sure we didn't nuke the data
+            self.assertTrue(np.any(Xprime > 0))
+            self.assertTrue(not np.any(np.isnan(Xprime)))
         self.assertTrue(numDiff>0)
 
         
