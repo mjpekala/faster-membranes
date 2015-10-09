@@ -237,6 +237,7 @@ def _load_data(xName, yName, tileRadius, onlySlices, omitLabels=None):
     # *** ASSUMPTION *** original data is in [0 255]
     if np.max(X) > 1:
         X = X / 255.
+    print('[emCNN]:    data min/max: %0.2f / %0.2f' % (np.min(X), np.max(X)))
 
     # Also obtain labels file (if provided - e.g. in deploy mode
     # we may not have labels...)
