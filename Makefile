@@ -47,39 +47,7 @@
 #-------------------------------------------------------------------------------
 
 
-# you can ignore these...needed to define paths properly later below
-MAKE_NAME := $(abspath $(lastword $(MAKEFILE_LIST)))
-BASE_DIR := $(patsubst %/,%,$(dir $(MAKE_NAME)))
-PROJ_NAME := $(notdir $(BASE_DIR))
-
-
-#-------------------------------------------------------------------------------
 include make.config
-
-
-
-#-------------------------------------------------------------------------------
-# MACROS that are system-independent (you can probably ignore these)
-# 
-#-------------------------------------------------------------------------------
-
-SRC=$(BASE_DIR)/src
-DATA_DIR=$(BASE_DIR)/Data/ISBI2012
-LMDB_DIR=$(BASE_DIR)/Data/ISBI2012/$(EXPERIMENT)
-MODEL_DIR=$(BASE_DIR)/Models/$(CNN)
-OUT_DIR=$(MODEL_DIR)/$(EXPERIMENT)
-
-# Different ways to run python.
-# (we always need PyCaffe and emlib.py in the PYTHONPATH)
-PY=PYTHONPATH=$(PYCAFFE):$(SRC) python
-IPY=PYTHONPATH=$(PYCAFFE):$(SRC) ipython -i --
-PYNOHUP=PYTHONPATH=$(PYCAFFE):$(SRC) nohup python
-PYPROF=PYTHONPATH=$(PYCAFFE):$(SRC) python -m cProfile -s cumtime
-
-# Number of iterations to use in timing experiments
-NITERS=100
-
-TAR=$(PROJ_NAME).tar
 
 
 #-------------------------------------------------------------------------------
