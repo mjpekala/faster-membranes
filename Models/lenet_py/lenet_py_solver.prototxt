@@ -1,6 +1,6 @@
 # This is the solver prototxt for use with pycaffe.
 
-net: "Models/lenet-py/lenet_py_net.prototxt"
+net: "Models/lenet_py/lenet_py_net.prototxt"
 
 #--------------------------------------------------
 # test_iter     := how many forward passes the test should carry out.
