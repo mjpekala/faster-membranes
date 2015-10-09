@@ -1,6 +1,6 @@
 # This is the solver prototxt for use with pycaffe.
 
-net: "Models/lenet-py/lenet-py-net.prototxt"
+net: "Models/lenet-py/lenet_py_net.prototxt"
 
 #--------------------------------------------------
 # test_iter     := how many forward passes the test should carry out.
@@ -31,7 +31,7 @@ display: 100
 snapshot: 5000
 
 # You can override the snapshot prefix via the python script
-snapshot_prefix: "./Models/lenet-py/"
+snapshot_prefix: "./Models/lenet_py/"
 
 # solver mode: CPU or GPU
 # solver_mode: CPU
