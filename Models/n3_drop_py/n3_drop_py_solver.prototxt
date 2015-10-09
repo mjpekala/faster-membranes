@@ -1,0 +1,52 @@
+# The train/test net protocol buffer definition
+# This is for a variant of Ciresan's N3 network[1],
+# and is designed for use with PyCaffe.
+#
+# In the first 20 slices of ISBI 2012 there are ~1.2e6
+# positive examples/pixels.  This means 2.4e6 tiles
+# total (since we rebalance classes 50/50).  
+#
+# If a mini-batch contains 100 tiles, this means there 
+# are ~2.4e4 mini-batches in a single epoch.
+#
+# [1] Ciresan et. al. "Deep Neural Networks Segment
+#     Neuronal Membranes in Electron Microscopy Images,"
+#     NIPS 2012.
+
+net: "./Models/n3_drop_py/n3_drop_py_net.prototxt"
+
+#--------------------------------------------------
+# test_iter     := how many forward passes the test should carry out.
+# test_interval := how frequently to test (every N training iterations)
+#
+# These aren't currently used by our python wrapper...
+#--------------------------------------------------
+test_iter: 1000  #  100000 / 100 = 1000
+test_interval: 500
+
+#--------------------------------------------------
+# Learning rate parameters
+#--------------------------------------------------
+lr_policy: "step"   # vs. "inv"
+max_iter: 400000
+stepsize: 130000
+
+base_lr: 0.01
+momentum: 0.9
+gamma: 0.1
+
+# weight_decay: 0.0005
+# power: 0.75
+
+#--------------------------------------------------
+#--------------------------------------------------
+# Display every 100 iterations
+display: 100
+# snapshot intermediate results
+snapshot: 5000
+
+# Note: we'll probably override the snapshot prefix.
+snapshot_prefix: "./Models/n3_py/"
+
+# solver mode: CPU or GPU
+# solver_mode: CPU
