@@ -13,7 +13,7 @@
 #     Neuronal Membranes in Electron Microscopy Images,"
 #     NIPS 2012.
 
-net: "./Models/n3-py/n3-py-net.prototxt"
+net: "./Models/n3_py/n3_py_net.prototxt"
 
 #--------------------------------------------------
 # test_iter     := how many forward passes the test should carry out.
@@ -46,6 +46,7 @@ display: 100
 snapshot: 5000
 
 # Note: we'll probably override the snapshot prefix.
-snapshot_prefix: "./Models/n3-py/"
+snapshot_prefix: "./Models/n3_py/"
+
 # solver mode: CPU or GPU
 # solver_mode: CPU
