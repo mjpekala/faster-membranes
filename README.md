@@ -10,13 +10,16 @@ This code is in an experimental state and subject to change.
 
 -  Install Caffe (including the Python interface) and Caffe con Troll (CcT).
 -  Edit make.config as needed for your system (and experiment of interest).
--  For caffe (command line) or CcT, preprocess the ISBI 2012 data set via:
-```
-    make lmdb
-```
--  Do either a timing experiment or extract probability estimates.  See
-   the Makefile for details.  A quick example is:
+-  To extract probability estimates (here, for ISBI 2012):
 ```
     make CNN=n3_py GPU=1 isbi2012-train
     make CNN=n3_py GPU=1 EVAL_PCT=.1 isbi2012-deploy
+```
+
+-  To run timing estimates for CcT vs Caffe:
+```
+    make lmdb
+    make GPU=1 caffe-train
+    make caffe-time-cpu
+    make cct-train
 ```

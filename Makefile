@@ -111,27 +111,27 @@ lmdb:
 caffe-train:
 	@mkdir -p $(OUT_DIR)
 	nohup $(CAFFE) train \
-		-solver $(MODEL_DIR)/$(CNN)-solver.prototxt \
+		-solver $(MODEL_DIR)/$(CNN)_solver.prototxt \
 	       	-gpu $(GPU) \
 		> $(OUT_DIR)/caffe.$(CNN).train.out &
 
 
 caffe-time-gpu:
 	$(CAFFE) time \
-		-model $(MODEL_DIR)/$(CNN)-net.prototxt \
+		-model $(MODEL_DIR)/$(CNN)_net.prototxt \
 		-weights $(OUT_DIR)/$(CAFFE_MODEL) \
 		-iterations $(NITERS) -gpu $(GPU)
 
 
 caffe-time-cpu:
 	$(CAFFE) time \
-		-model $(MODEL_DIR)/$(CNN)-net.prototxt \
+		-model $(MODEL_DIR)/$(CNN)_net.prototxt \
 		-weights $(OUT_DIR)/$(CAFFE_MODEL) \
 		-iterations $(NITERS)
 
 
 cct-train:
-	nohup $(CCT) train $(MODEL_DIR)/$(CNN)-solver.prototxt > cct.train.out &
+	nohup $(CCT) train $(MODEL_DIR)/$(CNN)_solver.prototxt > cct.train.out &
 
 cct-fwd-time:
 	@grep "Forward Pass" cct.train.out | awk '{print $$6}'
