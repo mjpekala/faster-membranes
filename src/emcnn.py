@@ -121,7 +121,7 @@ def _deploy_mode_args():
 
     # Ref: Gal, Ghahramani "Dropout as a Bayesian Approximation:
     #      Representing Model Uncertainty in Deep Learning," arXiv, 2015.
-    parser.add_argument('--n-mcmc', dest='numMCMC', 
+    parser.add_argument('--n-mcmc', dest='nMCMC', 
 		    type=int, default=0, 
 		    help='(optional) if you have a model with dropout, the number of forward passes to use for estimating uncertainty. This is highly experimental...')
 
@@ -748,7 +748,7 @@ def _deploy_network(args):
                          None,
                          tileRadius=bs,
                          onlySlices=args.deploySlices)
-    print "[emCNN]: tile dimension is: %d" % bs
+    print "[emCNN]: tile radius is: %d" % bs
 
     # Create a mask volume (vs list of labels to omit) due to API of emlib
     if args.evalPct < 1: 
