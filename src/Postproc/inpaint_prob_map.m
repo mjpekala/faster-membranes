@@ -1,4 +1,4 @@
-function Yout = inpaint_prob_map(Yin)
+function Yout = inpaint_prob_map(Yin, useSmoothed)
 % INPAINT_PROB_MAP  Inpaints missing membrane probabilities.
 %
 %      Yout = inpaint_prob_map(Yin);
@@ -16,7 +16,21 @@ function Yout = inpaint_prob_map(Yin)
 %
 % October 2015, mjp
 
+if nargin < 2, useSmoothed = 1; end
+
 assert(length(size(Yin)) == 3);
+
+if ~exist('inpaintn')
+  error('No function inpaintn(); Is the "inpaint" subdirectory in the matlab search path?');
+end
+
+if ~any(isnan(Yin(:)))
+    fprintf('[%s]: No NaN values in input image - nothing to do\n', mfilename)
+    Yout = Yin;
+    return
+end
+
+
 
 fprintf('[%s]: recovering missing values (%0.2f%% of volume)\n', ...
   mfilename, 100*sum(isnan(Yin(:))) / numel(Yin));
@@ -34,9 +48,8 @@ for ii = 1:size(Yin,3)
   Yr = Yr - min(Yr(:));
   Yr = Yr / (max(Yr(:)) - min(Yr(:)));
 
-  % use original estimates, where available
-  % (note that the result will be smoother if we don't do this...)
-  if 1
+  % Can optionally replace smoothed values with original values...
+  if ~useSmoothed
       Yr(isfinite(Yi)) = Yi(isfinite(Yi));
   end
 
