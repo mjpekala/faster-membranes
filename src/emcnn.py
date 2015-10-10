@@ -119,6 +119,12 @@ def _deploy_mode_args():
 		    type=str, default='', 
 		    help='(optional) limit to a subset of X/Y deploy volume')
 
+    # Ref: Gal, Ghahramani "Dropout as a Bayesian Approximation:
+    #      Representing Model Uncertainty in Deep Learning," arXiv, 2015.
+    parser.add_argument('--n-mcmc', dest='numMCMC', 
+		    type=int, default=0, 
+		    help='(optional) if you have a model with dropout, the number of forward passes to use for estimating uncertainty. This is highly experimental...')
+
     return parser
 
 
@@ -603,7 +609,7 @@ def _train_network(args):
 #-------------------------------------------------------------------------------
 
 
-def predict(net, X, Mask, batchDim):
+def predict(net, X, Mask, batchDim, nMCMC=0):
     """Generates predictions for a data volume.
 
     PARAMETERS:
@@ -628,12 +634,15 @@ def predict(net, X, Mask, batchDim):
 
     # if we don't evaluate all pixels, the 
     # ones not evaluated will have label -1
-    Prob = -1*np.ones((nClasses, X.shape[0], X.shape[1], X.shape[2]))
+    if nMCMC <= 0: 
+        Prob = -1*np.ones((nClasses, X.shape[0], X.shape[1], X.shape[2]))
+    else:
+        raise RuntimeError('sorry - nMCMC > 0 not yet supported')
 
     print "[emCNN]: Evaluating %0.2f%% of cube" % (100.0*np.sum(Mask)/numel(Mask)) 
 
     # do it
-    tic = time.time()
+    startTime = time.time()
     cnnTime = 0
     lastChatter = -2
     it = emlib.interior_pixel_generator(X, tileRadius, batchDim[0], mask=Mask)
@@ -673,16 +682,15 @@ def predict(net, X, Mask, batchDim):
             Prob[jj, Idx[:,0], Idx[:,1], Idx[:,2]] = pj[:Idx.shape[0]]   # (*)
 
 
-        elapsed = time.time() - tic
+        elapsed = (time.time() - startTime) / 60.0
 
-        if (lastChatter+2) < (elapsed/60.):  # notify progress every 2 min
-            lastChatter = elapsed/60.
-            print('[emCNN]: elapsed=%0.2f min; %0.2f%% complete' % (elapsed/60., 100.*epochPct))
+        if (lastChatter+2) < elapsed:  # notify progress every 2 min
+            lastChatter = elapsed
+            print('[emCNN]: elapsed=%0.2f min; %0.2f%% complete' % (elapsed, 100.*epochPct))
             sys.stdout.flush()
 
     # done
-    elapsed = time.time() - tic
-    print('[emCNN]: Total time to evaluate cube: %0.2f min (%0.2f CNN min)' % (elapsed/60., cnnTime/60.))
+    print('[emCNN]: Total time to evaluate cube: %0.2f min (%0.2f CNN min)' % (elapsed, cnnTime/60.))
     return Prob
 
 
@@ -763,13 +771,16 @@ def _deploy_network(args):
     #----------------------------------------
     sys.stdout.flush()
 
-    Prob = predict(net, Xdeploy, Mask, batchDim)
+    if args.nMCMC < 0: 
+        Prob = predict(net, Xdeploy, Mask, batchDim)
+        #Yhat = np.argmax(Prob, 0) 
+        #Yhat[Mask==False] = -1;
+        #Yhat = prune_border_3d(Yhat, bs)
+    else:
+        Prob = predict(net, Xdeploy, Mask, batchDim, nMCMC=args.nMCMC)
 
-    # discard mirrored edges and form class estimates
-    Yhat = np.argmax(Prob, 0) 
-    Yhat[Mask==False] = -1;
+    # discard mirrored edges 
     Prob = prune_border_4d(Prob, bs)
-    Yhat = prune_border_3d(Yhat, bs)
 
     net.save(str(os.path.join(outDir, 'final.caffemodel')))
     np.save(os.path.join(outDir, 'YhatDeploy'), Prob)
