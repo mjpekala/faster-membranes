@@ -720,7 +720,7 @@ def _deploy_network(args):
 
     # Add a timestamped subdirectory.
     ts = datetime.datetime.now()
-    subdir = "Deploy_%s_%d-%d" % (ts.date(), ts.hour, ts.minute)
+    subdir = "Deploy_%s_%02d:%02d" % (ts.date(), ts.hour, ts.minute)
     outDir = os.path.join(outDir, subdir)
 
     if not os.path.isdir(outDir):
