@@ -1,0 +1,525 @@
+# For use with caffe's python interface.
+
+
+name: "CiresanN3"
+
+layer {
+  type: "MemoryData"
+  name: "data"
+  top: "data"
+  top: "label"
+  memory_data_param {
+    batch_size:  100
+    channels:    1
+    height:      95   # made larger due to network depth
+    width:       95 
+  }
+}
+
+
+#-------------------------------------------------------------------------------
+# Super-layer 1
+#-------------------------------------------------------------------------------
+layer {
+  name: "conv1a"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1a"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1a"
+  type: "ReLU"
+  bottom: "conv1a"
+  top: "conv1a"
+}
+
+layer {
+  name: "conv1b"
+  type: "Convolution"
+  bottom: "conv1a"
+  top: "conv1b"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1b"
+  type: "ReLU"
+  bottom: "conv1b"
+  top: "conv1b"
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1b"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+#-------------------------------------------------------------------------------
+# Super-layer 2
+#-------------------------------------------------------------------------------
+
+layer {
+  name: "conv2a"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2a"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu2a"
+  type: "ReLU"
+  bottom: "conv2a"
+  top: "conv2a"
+}
+
+layer {
+  name: "conv2b"
+  type: "Convolution"
+  bottom: "conv2a"
+  top: "conv2b"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu2b"
+  type: "ReLU"
+  bottom: "conv2b"
+  top: "conv2b"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2b"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+
+#-------------------------------------------------------------------------------
+# Super-layer 3
+#-------------------------------------------------------------------------------
+
+
+layer {
+  name: "conv3a"
+  type: "Convolution"
+  bottom: "pool2"
+  top: "conv3a"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu3a"
+  type: "ReLU"
+  bottom: "conv3a"
+  top: "conv3a"
+}
+
+layer {
+  name: "conv3b"
+  type: "Convolution"
+  bottom: "conv3a"
+  top: "conv3b"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu3b"
+  type: "ReLU"
+  bottom: "conv3b"
+  top: "conv3b"
+}
+
+
+layer {
+  name: "conv3c"
+  type: "Convolution"
+  bottom: "conv3b"
+  top: "conv3c"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu3c"
+  type: "ReLU"
+  bottom: "conv3c"
+  top: "conv3c"
+}
+
+
+layer {
+  name: "pool3"
+  type: "Pooling"
+  bottom: "conv3c"
+  top: "pool3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 1   # ****** note - stride 1 here...
+  }
+}
+
+
+#-------------------------------------------------------------------------------
+# Super-layer 4
+#-------------------------------------------------------------------------------
+
+
+layer {
+  name: "conv4a"
+  type: "Convolution"
+  bottom: "pool3"
+  top: "conv4a"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu4a"
+  type: "ReLU"
+  bottom: "conv4a"
+  top: "conv4a"
+}
+
+layer {
+  name: "conv4b"
+  type: "Convolution"
+  bottom: "conv4a"
+  top: "conv4b"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu4b"
+  type: "ReLU"
+  bottom: "conv4b"
+  top: "conv4b"
+}
+
+
+layer {
+  name: "conv4c"
+  type: "Convolution"
+  bottom: "conv4b"
+  top: "conv4c"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu4c"
+  type: "ReLU"
+  bottom: "conv4c"
+  top: "conv4c"
+}
+
+
+layer {
+  name: "pool4"
+  type: "Pooling"
+  bottom: "conv4c"
+  top: "pool4"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+
+#-------------------------------------------------------------------------------
+# Super-layer 5
+#-------------------------------------------------------------------------------
+
+
+#layer {
+#  name: "conv5a"
+#  type: "Convolution"
+#  bottom: "pool4"
+#  top: "conv5a"
+#  convolution_param {
+#    num_output: 64
+#    pad: 0
+#    kernel_size: 3
+#    stride: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.0001
+#    }
+#    bias_filler {
+#      type: "constant"
+#    }
+#  }
+#}
+#layer {
+#  name: "relu5a"
+#  type: "ReLU"
+#  bottom: "conv5a"
+#  top: "conv5a"
+#}
+#
+#layer {
+#  name: "conv5b"
+#  type: "Convolution"
+#  bottom: "conv5a"
+#  top: "conv5b"
+#  convolution_param {
+#    num_output: 64
+#    pad: 0
+#    kernel_size: 3
+#    stride: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.0001
+#    }
+#    bias_filler {
+#      type: "constant"
+#    }
+#  }
+#}
+#layer {
+#  name: "relu5b"
+#  type: "ReLU"
+#  bottom: "conv5b"
+#  top: "conv5b"
+#}
+#
+#
+#layer {
+#  name: "conv5c"
+#  type: "Convolution"
+#  bottom: "conv5b"
+#  top: "conv5c"
+#  convolution_param {
+#    num_output: 64
+#    pad: 0
+#    kernel_size: 3
+#    stride: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.0001
+#    }
+#    bias_filler {
+#      type: "constant"
+#    }
+#  }
+#}
+#layer {
+#  name: "relu5c"
+#  type: "ReLU"
+#  bottom: "conv5c"
+#  top: "conv5c"
+#}
+#
+#
+#layer {
+#  name: "pool5"
+#  type: "Pooling"
+#  bottom: "conv5c"
+#  top: "pool5"
+#  pooling_param {
+#    pool: MAX
+#    kernel_size: 2
+#    stride: 1     # **** note: stride is 1 here
+#  }
+#}
+
+
+
+#-------------------------------------------------------------------------------
+# Inner product and beyond
+#-------------------------------------------------------------------------------
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+#  bottom: "pool5"
+  bottom: "pool4"
+  top: "ip1"
+  inner_product_param {
+    num_output: 200
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu_ip1"
+  type: "ReLU"
+  bottom: "ip1"
+  top: "ip1"
+}
+
+
+layer {
+  name: "ip2"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2"
+  inner_product_param {
+    num_output: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+
+layer {
+  type: "SoftmaxWithLoss"
+  name: "loss"
+  top: "loss"
+  bottom: "ip2"
+  bottom: "label"
+}
+
+
+layer {
+  name: "acc"
+  type: "Accuracy"
+  bottom: "ip2"
+  bottom: "label"
+  top: "acc"
+#  include{ 
+#    phase: TEST 
+#  }
+}
+
+
+# This Softmax layer only exists to facilitate extracting predictions.
+layer {
+  name: "prob"
+  type: "Softmax"
+  bottom: "ip2"
+  top: "prob"
+#  include {
+#    phase: TEST
+#  }
+}
