@@ -72,7 +72,7 @@ isbi2012-train:
 isbi2012-deploy:
 	@mkdir -p $(OUT_DIR)
 	$(PYNOHUP) $(SRC)/emcnn.py \
-		--x-deploy $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
+		--x-deploy $(BASE_DIR)/Data/ISBI2012/test-volume.tif \
 		--network $(MODEL_DIR)/$(CNN)_net.prototxt \
 		--model $(OUT_DIR)/$(CAFFE_MODEL) \
 		--gpu $(GPU) \
