@@ -14,7 +14,7 @@ This code is in an experimental state and subject to change.
     make CNN=n3_py GPU=1 isbi2012-train
     make CNN=n3_py GPU=1 EVAL_PCT=.1 isbi2012-deploy
 ```
-  Outputs will be placed in the "Experiments" subdirectory.
+  Outputs will be placed in the "Experiments" subdirectory.  Code for filling in unevaluated pixels can be found in src/Postproc.
 
 -  To run timing estimates for CcT vs Caffe:
 ```
