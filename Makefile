@@ -98,13 +98,13 @@ lmdb:
 	@$(PY) $(SRC)/make_lmdb.py \
 		-X $(OUT_DIR)/Xtrain.npy \
 		-Y $(OUT_DIR)/Ytrain.npy \
-		--num-examples $(N_TILES) \
+		--num-examples 200000 \
 		-o $(OUT_DIR)/train.lmdb
 
 	@$(PY) $(SRC)/make_lmdb.py \
 		-X $(OUT_DIR)/Xvalid.npy \
 		-Y $(OUT_DIR)/Yvalid.npy \
-		--num-examples $(N_TILES) \
+		--num-examples 200000 \
 		-o $(OUT_DIR)/valid.lmdb
 
 
