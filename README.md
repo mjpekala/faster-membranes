@@ -26,7 +26,7 @@ This code is in an experimental state and subject to change.
 
 
 ## Caffe Notes
-As of Oct 12, 2015 the following modifications to Caffe source code are required in order to run this software:
+In order to use this code with Caffe (version 1.0, release candidate 2) the following modifications to the Caffe source are required:
 
-- Fix the memory leak in the memory data layer: https://github.com/BVLC/caffe/issues/2334
+- Fix the memory leak in the memory data layer: https://github.com/BVLC/caffe/issues/2334.  Note also you must initialize labels_ and data_ in the MemoryDataLayer header definition to NULL if you want the Caffe unit tests to pass.
 - Add support for MCMC sampling in test mode:  https://github.com/yaringal/DropoutUncertaintyCaffeModels
