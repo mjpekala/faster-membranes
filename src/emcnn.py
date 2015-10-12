@@ -408,10 +408,10 @@ def train_one_epoch(solver, X, Y,
 
     PARAMETERS:
       solver    : a PyCaffe solver object
-      X         : a data volume/tensor with dimensions (#slices, width, height)
+      X         : a data volume/tensor with dimensions (#slices, height, width)
       Y         : a labels tensor with same size as X
       trainInfo : a TrainInfo object (will be modified by this function!!)
-      batchDim  : the tuple (#classes, minibatchSize, width, height)
+      batchDim  : the tuple (#classes, minibatchSize, height, width)
       outDir    : output directory (e.g. for model snapshots)
       omitLabels : class labels to skip during training (or [] for none)
       data_agument : synthetic data augmentation function
@@ -448,6 +448,9 @@ def train_one_epoch(solver, X, Y,
         if data_augment is not None:
             Xi = data_augment(Xi)
 
+        # convert labels to a 4d tensor
+        yiTensor = np.ascontiguousarray(yi[:, np.newaxis, np.newaxis, np.newaxis])
+
         assert(not np.any(np.isnan(Xi)))
         assert(not np.any(np.isnan(yi)))
 
@@ -455,14 +458,16 @@ def train_one_epoch(solver, X, Y,
         # one forward/backward pass and update weights
         #----------------------------------------
         _tmp = time.time()
-        solver.net.set_input_arrays(Xi, yi)
+        solver.net.set_input_arrays(Xi, yiTensor)
         out = solver.net.forward()
+        assert(np.all(solver.net.blobs['data'].data == Xi))
+        assert(np.all(solver.net.blobs['label'].data == yiTensor))
         solver.net.backward()
 
         # SGD with momentum
         for lIdx, layer in enumerate(solver.net.layers):
-            for bIdx, blob in enumerate(layer.blobs):
-                if np.any(np.isnan(blob.diff)):
+            for bIdx, blob in enumerate(layer.blobs): 
+                if np.any(np.isnan(blob.diff)): 
                     raise RuntimeError("NaN detected in gradient of layer %d" % lIdx)
                 key = (lIdx, bIdx)
                 V = trainInfo.V.get(key, 0.0)
@@ -618,12 +623,12 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
     """Generates predictions for a data volume.
 
     PARAMETERS:
-      X        : a data volume/tensor with dimensions (#slices, width, height)
+      X        : a data volume/tensor with dimensions (#slices, height, width)
       Mask     : a boolean tensor with the same size as X.  Only positive
                  elements will be classified.  The prediction for all 
                  negative elements will be -1.  Use this to run predictions
                  on a subset of the volume.
-      batchDim : a tuple of the form (#classes, minibatchSize, width, height)
+      batchDim : a tuple of the form (#classes, minibatchSize, height, width)
 
     """    
     # *** This code assumes a layer called "prob"
