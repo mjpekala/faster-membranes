@@ -448,6 +448,9 @@ def train_one_epoch(solver, X, Y,
         if data_augment is not None:
             Xi = data_augment(Xi)
 
+        assert(not np.any(np.isnan(Xi)))
+        assert(not np.any(np.isnan(yi)))
+
         #----------------------------------------
         # one forward/backward pass and update weights
         #----------------------------------------
@@ -459,6 +462,8 @@ def train_one_epoch(solver, X, Y,
         # SGD with momentum
         for lIdx, layer in enumerate(solver.net.layers):
             for bIdx, blob in enumerate(layer.blobs):
+                if np.any(np.isnan(blob.diff)):
+                    raise RuntimeError("NaN detected in gradient of layer %d" % lIdx)
                 key = (lIdx, bIdx)
                 V = trainInfo.V.get(key, 0.0)
                 Vnext = (trainInfo.mu * V) - (trainInfo.alpha * blob.diff)
@@ -625,6 +630,8 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
     if 'prob' not in net.blobs: 
         raise RuntimeError("Can't find a layer with output called 'prob'")
 
+    print "[emCNN]: Evaluating %0.2f%% of cube" % (100.0*np.sum(Mask)/numel(Mask)) 
+
     # Pre-allocate some variables & storage.
     #
     tileRadius = int(batchDim[2]/2)
@@ -637,9 +644,11 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
     if nMCMC <= 0: 
         Prob = -1*np.ones((nClasses, X.shape[0], X.shape[1], X.shape[2]))
     else:
-        raise RuntimeError('sorry - nMCMC > 0 not yet supported')
+        Prob = -1*np.ones((nMCMC, X.shape[0], X.shape[1], X.shape[2]))
+        print "[emCNN]: Generating %d MCMC samples for class 0" % nMCMC
+        if nClasses > 2: 
+            print "[emCNN]: !!!WARNING!!! nClasses > 2 but we are only extracting MCMC samples for class 0 at this time..."
 
-    print "[emCNN]: Evaluating %0.2f%% of cube" % (100.0*np.sum(Mask)/numel(Mask)) 
 
     # do it
     startTime = time.time()
@@ -658,29 +667,46 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
             yi[jj] = 0  # this is just a dummy value
 
         #---------------------------------------- 
-        # one forward pass; no backward pass 
+        # forward pass only (i.e. no backward pass)
         #----------------------------------------
-        _tmp = time.time()
-        net.set_input_arrays(Xi, yi)
-        out = net.forward()
-        cnnTime += time.time() - _tmp
+        if nMCMC <= 0: 
+            # this is the typical case - just one forward pass
+            _tmp = time.time() 
+            net.set_input_arrays(Xi, yi)
+            out = net.forward() 
+            cnnTime += time.time() - _tmp 
+            
+            # On some version of Caffe, Prob is (batchSize, nClasses, 1, 1) 
+            # On newer versions, it is natively (batchSize, nClasses) 
+            # The squeeze here is to accommodate older versions 
+            ProbBatch = np.squeeze(out['prob']) 
+            
+            # store the per-class probability estimates.  
+            # 
+            # * On the final iteration, the size of Prob  may not match 
+            #   the remaining space in Yhat (unless we get lucky and the 
+            #   data cube size is a multiple of the mini-batch size).  
+            #   This is why we slice yijHat before assigning to Yhat. 
+            for jj in range(nClasses): 
+                pj = ProbBatch[:,jj]      # get probabilities for class j 
+                assert(len(pj.shape)==1)  # should be a vector (vs tensor) 
+                Prob[jj, Idx[:,0], Idx[:,1], Idx[:,2]] = pj[:Idx.shape[0]]   # (*)
+        else:
+            # Generate MCMC-based uncertainty estimates
+            # (instead of just a single point estimate)
+            _tmp = time.time() 
+            net.set_input_arrays(Xi, yi)
 
-        # On some version of Caffe, Prob is (batchSize, nClasses, 1, 1)
-        # On newer versions, it is natively (batchSize, nClasses)
-        # The squeeze here is to accommodate older versions
-        ProbBatch = np.squeeze(out['prob']) 
-
-        # store the per-class probability estimates.
-        #
-        # * Note that on the final iteration, the size of Prob  may not match
-        #   the remaining space in Yhat (unless we get lucky and the data cube
-        #   size is a multiple of the mini-batch size).  This is why we slice
-        #   yijHat before assigning to Yhat.
-        for jj in range(nClasses):
-            pj = ProbBatch[:,jj]      # get probabilities for class j
-            assert(len(pj.shape)==1)  # should be a vector (vs tensor)
-            Prob[jj, Idx[:,0], Idx[:,1], Idx[:,2]] = pj[:Idx.shape[0]]   # (*)
-
+            # do nMCMC forward passes and save the probability estimate
+            # for class 0.
+            for ii in range(nMCMC): 
+                out = net.forward() 
+                ProbBatch = np.squeeze(out['prob']) 
+                p0 = ProbBatch[:,0]      # get probabilities for class 0
+                assert(len(pj.shape)==1)  # should be a vector (vs tensor) 
+                Prob[ii, Idx[:,0], Idx[:,1], Idx[:,2]] = p0[:Idx.shape[0]]   # (*)
+            cnnTime += time.time() - _tmp 
+            
 
         elapsed = (time.time() - startTime) / 60.0
 
@@ -773,9 +799,6 @@ def _deploy_network(args):
 
     if args.nMCMC < 0: 
         Prob = predict(net, Xdeploy, Mask, batchDim)
-        #Yhat = np.argmax(Prob, 0) 
-        #Yhat[Mask==False] = -1;
-        #Yhat = prune_border_3d(Yhat, bs)
     else:
         Prob = predict(net, Xdeploy, Mask, batchDim, nMCMC=args.nMCMC)
 
