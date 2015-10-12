@@ -23,3 +23,10 @@ This code is in an experimental state and subject to change.
     make caffe-time-cpu
     make cct-train
 ```
+
+
+## Caffe Notes
+As of Oct 12, 2015 the following modifications to Caffe source code are required in order to run this software:
+
+- Fix the memory leak in the memory data layer: https://github.com/BVLC/caffe/issues/2334
+- Add support for MCMC sampling in test mode:  https://github.com/yaringal/DropoutUncertaintyCaffeModels
