@@ -15,7 +15,11 @@ This software requires Caffe (tested with version 1.0, release candidate 2) and 
 
 Note that the following modifications to Caffe are required:
 
-- Fix the memory leak in the memory data layer (see https://github.com/BVLC/caffe/issues/2334).  Note also you must initialize labels_ and data_ in the MemoryDataLayer header definition to NULL if you want the Caffe unit tests to pass.
+- Fix the memory leak in the memory data layer (see https://github.com/BVLC/caffe/issues/2334).  Also initialize labels_ and data_ in the MemoryDataLayer (include/caffe/data_layers.hpp) if you want the Caffe unit tests to pass.
+```
+   Dtype* data_ = NULL;
+   Dtype* labels_ = NULL;
+```
 - Optional - for uncertainty quantification, apply the patch described here: https://github.com/yaringal/DropoutUncertaintyCaffeModels.  Note that I called the new parameter "do_mc" instead of "sample_weights_test".
 
 
