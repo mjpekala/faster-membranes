@@ -207,7 +207,7 @@ layer {
   top: "dropout"
   dropout_param {
     dropout_ratio: 0.5
-    do_mc: true
+    do_mc: true          # mjp: uncomment this line for monte carlo-based UQ
   }
 }
 
