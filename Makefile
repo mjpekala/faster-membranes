@@ -68,7 +68,7 @@ isbi2012-train:
 		> $(OUT_DIR)/pycaffe.$(CNN).train.out &
 
 
-# you may want to change "train-volume" to "test-volume"
+# set --x-deploy to whatever file you wish to analyze
 isbi2012-deploy:
 	@mkdir -p $(OUT_DIR)
 	$(PYNOHUP) $(SRC)/emcnn.py \
@@ -79,6 +79,20 @@ isbi2012-deploy:
 		--eval-pct $(EVAL_PCT) \
 		--out-dir $(OUT_DIR) \
 		> $(OUT_DIR)/pycaffe.$(CNN).predict.out &
+
+
+isbi2012-uq:
+	@mkdir -p $(OUT_DIR)
+	$(PYNOHUP) $(SRC)/emcnn.py \
+		--x-deploy $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
+		--deploy-slices "[28,29]" \
+		--network $(MODEL_DIR)/$(CNN)_net.prototxt \
+		--model $(OUT_DIR)/$(CAFFE_MODEL) \
+		--gpu $(GPU) \
+		--eval-pct $(EVAL_PCT) \
+		--n-monte-carlo 30 \
+		--out-dir $(OUT_DIR) \
+		> $(OUT_DIR)/pycaffe.$(CNN).uq.out &
 
 
 #-------------------------------------------------------------------------------

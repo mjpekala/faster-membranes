@@ -710,7 +710,6 @@ def predict(net, X, Mask, batchDim, nMC=0):
                 p0 = ProbBatch[:,0]      # get probabilities for class 0
                 assert(len(p0.shape)==1)  # should be a vector (vs tensor) 
                 Prob[ii, Idx[:,0], Idx[:,1], Idx[:,2]] = p0[:Idx.shape[0]]   # (*)
-                pdb.set_trace() # TEMP
             cnnTime += time.time() - _tmp 
             
 
