@@ -7,7 +7,21 @@ This code is in an experimental state and subject to change.
 
 ## Quick start
 
--  Install Caffe (including the Python interface) and Caffe con Troll (CcT).
+### Configuring Caffe
+This software requires Caffe (tested with version 1.0, release candidate 2) and optionally Caffe con Troll (alpha release).
+
+- https://github.com/BVLC/caffe/releases
+- https://github.com/HazyResearch/CaffeConTroll
+
+Note that the following modifications to Caffe are required:
+
+- Fix the memory leak in the memory data layer (see https://github.com/BVLC/caffe/issues/2334).  Note also you must initialize labels_ and data_ in the MemoryDataLayer header definition to NULL if you want the Caffe unit tests to pass.
+- Optional - for uncertainty quantification, apply the patch described here: https://github.com/yaringal/DropoutUncertaintyCaffeModels.  Note that I called the new parameter "do_mc" instead of "sample_weights_test".
+
+
+### Running Experiments
+
+-  Install Caffe (including the Python interface) and Caffe con Troll (CcT) and modify as described above.
 -  Edit make.config as needed for your system (and experiment of interest).
 -  To extract probability estimates (here, for ISBI 2012):
 ```
@@ -18,15 +32,8 @@ This code is in an experimental state and subject to change.
 
 -  To run timing estimates for CcT vs Caffe:
 ```
-    make lmdb
-    make GPU=1 caffe-train
-    make caffe-time-cpu
-    make cct-train
+    make CNN=lenet_lmdb lmdb
+    make CNN=lenet_lmdb GPU=1 caffe-train
+    make CNN=lenet_lmdb caffe-time-cpu
+    make CNN=lenet_lmdb cct-train
 ```
-
-
-## Caffe Notes
-In order to use this code with Caffe (version 1.0, release candidate 2) the following modifications to the Caffe source are required:
-
-- Fix the memory leak in the memory data layer: https://github.com/BVLC/caffe/issues/2334.  Note also you must initialize labels_ and data_ in the MemoryDataLayer header definition to NULL if you want the Caffe unit tests to pass.
-- Add support for MCMC sampling in test mode:  https://github.com/yaringal/DropoutUncertaintyCaffeModels
