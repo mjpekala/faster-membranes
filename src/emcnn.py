@@ -121,9 +121,9 @@ def _deploy_mode_args():
 
     # Ref: Gal, Ghahramani "Dropout as a Bayesian Approximation:
     #      Representing Model Uncertainty in Deep Learning," arXiv, 2015.
-    parser.add_argument('--n-mcmc', dest='nMCMC', 
+    parser.add_argument('--n-monte-carlo', dest='nMC', 
 		    type=int, default=0, 
-		    help='(optional) if you have a model with dropout, the number of forward passes to use for estimating uncertainty. This is highly experimental...')
+		    help='(optional) if you have a model with dropout, the number of monte carlo samples to use for estimating uncertainty. This is highly experimental...')
 
     return parser
 
@@ -619,7 +619,7 @@ def _train_network(args):
 #-------------------------------------------------------------------------------
 
 
-def predict(net, X, Mask, batchDim, nMCMC=0):
+def predict(net, X, Mask, batchDim, nMC=0):
     """Generates predictions for a data volume.
 
     PARAMETERS:
@@ -646,13 +646,13 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
 
     # if we don't evaluate all pixels, the 
     # ones not evaluated will have label -1
-    if nMCMC <= 0: 
+    if nMC <= 0: 
         Prob = -1*np.ones((nClasses, X.shape[0], X.shape[1], X.shape[2]))
     else:
-        Prob = -1*np.ones((nMCMC, X.shape[0], X.shape[1], X.shape[2]))
-        print "[emCNN]: Generating %d MCMC samples for class 0" % nMCMC
+        Prob = -1*np.ones((nMC, X.shape[0], X.shape[1], X.shape[2]))
+        print "[emCNN]: Generating %d MC samples for class 0" % nMC
         if nClasses > 2: 
-            print "[emCNN]: !!!WARNING!!! nClasses > 2 but we are only extracting MCMC samples for class 0 at this time..."
+            print "[emCNN]: !!!WARNING!!! nClasses > 2 but we are only extracting MC samples for class 0 at this time..."
 
 
     # do it
@@ -674,7 +674,7 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
         #---------------------------------------- 
         # forward pass only (i.e. no backward pass)
         #----------------------------------------
-        if nMCMC <= 0: 
+        if nMC <= 0: 
             # this is the typical case - just one forward pass
             _tmp = time.time() 
             net.set_input_arrays(Xi, yi)
@@ -697,19 +697,20 @@ def predict(net, X, Mask, batchDim, nMCMC=0):
                 assert(len(pj.shape)==1)  # should be a vector (vs tensor) 
                 Prob[jj, Idx[:,0], Idx[:,1], Idx[:,2]] = pj[:Idx.shape[0]]   # (*)
         else:
-            # Generate MCMC-based uncertainty estimates
+            # Generate MC-based uncertainty estimates
             # (instead of just a single point estimate)
             _tmp = time.time() 
             net.set_input_arrays(Xi, yi)
 
-            # do nMCMC forward passes and save the probability estimate
+            # do nMC forward passes and save the probability estimate
             # for class 0.
-            for ii in range(nMCMC): 
+            for ii in range(nMC): 
                 out = net.forward() 
                 ProbBatch = np.squeeze(out['prob']) 
                 p0 = ProbBatch[:,0]      # get probabilities for class 0
-                assert(len(pj.shape)==1)  # should be a vector (vs tensor) 
+                assert(len(p0.shape)==1)  # should be a vector (vs tensor) 
                 Prob[ii, Idx[:,0], Idx[:,1], Idx[:,2]] = p0[:Idx.shape[0]]   # (*)
+                pdb.set_trace() # TEMP
             cnnTime += time.time() - _tmp 
             
 
@@ -802,10 +803,10 @@ def _deploy_network(args):
     #----------------------------------------
     sys.stdout.flush()
 
-    if args.nMCMC < 0: 
+    if args.nMC < 0: 
         Prob = predict(net, Xdeploy, Mask, batchDim)
     else:
-        Prob = predict(net, Xdeploy, Mask, batchDim, nMCMC=args.nMCMC)
+        Prob = predict(net, Xdeploy, Mask, batchDim, nMC=args.nMC)
 
     # discard mirrored edges 
     Prob = prune_border_4d(Prob, bs)
