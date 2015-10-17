@@ -10,7 +10,7 @@ assert(sum(yAll >= 0) == 2);
 assert(length(intersect([0 1], yAll)) == 2);
 
 
-thresh = 0:.05:1;
+thresh = fliplr(0:.01:1);
 
 Yhat = bsxfun(@ge, Scores(:), thresh);  % scores -> {0,1}
 
