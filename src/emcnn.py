@@ -633,7 +633,7 @@ def predict(net, X, Mask, batchDim, nMC=0):
     """    
     # *** This code assumes a layer called "prob"
     if 'prob' not in net.blobs: 
-        raise RuntimeError("Can't find a layer with output called 'prob'")
+        raise RuntimeError("Can't find a layer called 'prob'")
 
     print "[emCNN]: Evaluating %0.2f%% of cube" % (100.0*np.sum(Mask)/numel(Mask)) 
 
