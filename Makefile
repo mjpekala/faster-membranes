@@ -151,3 +151,24 @@ cct-fwd-time:
 	@grep "Forward Pass" cct.train.out | awk '{print $$6}'
 
 
+
+
+#-------------------------------------------------------------------------------
+#  III. Kasthuri data set
+#-------------------------------------------------------------------------------
+
+kast-train:
+	@mkdir -p $(OUT_DIR)
+	$(PYNOHUP) $(SRC)/emcnn.py \
+		--x-train $(BASE_DIR)/Data/Kasthuri11/train-volume.npy \
+		--y-train $(BASE_DIR)/Data/Kasthuri11/train-labels-thresh.npy \
+		--train-slices "range(0,95)" \
+		--x-valid $(BASE_DIR)/Data/Kasthuri11/train-volume.npy \
+		--y-valid $(BASE_DIR)/Data/Kasthuri11/train-labels-thresh.npy \
+		--valid-slices "range(95,100)" \
+		--solver $(MODEL_DIR)/$(CNN)_solver.prototxt \
+		--rotate-data $(ROTATE) \
+		--gpu $(GPU) \
+		--out-dir $(OUT_DIR) \
+		> $(OUT_DIR)/pycaffe.$(CNN).kast.train.out &
+
