@@ -41,6 +41,7 @@ __license__ = "Apache 2.0"
 import sys, os, argparse, time, datetime
 from pprint import pprint
 from random import shuffle
+import copy
 import pdb
 
 import numpy as np
@@ -204,7 +205,8 @@ def _print_net(net):
 def _omit_labels(Y, extraOmits=[]):
     """Determines which labels to omit.
     
-    This is the uniont of the set of all negative labels in Y with the set extraOmits.
+    This is the union of the set of all negative labels in Y 
+    with the set extraOmits.
     """
     # we always omit labels < 0
     omitLabels = np.unique(Y)
@@ -289,7 +291,7 @@ class TrainInfo:
     """
 
     def __init__(self, solverParam):
-        self.param = solverParam
+        self.param = copy.deepcopy(solverParam)
 
         self.isModeStep = (solverParam.lr_policy == u'step')
 
@@ -327,7 +329,6 @@ class TrainInfo:
         assert(self.mu >= 0)
 
 
-        # XXX: weight decay
         # XXX: layer-specific weights
 
 
@@ -474,6 +475,10 @@ def train_one_epoch(solver, X, Y,
                 Vnext = (trainInfo.mu * V) - (trainInfo.alpha * blob.diff)
                 blob.data[...] += Vnext
                 trainInfo.V[key] = Vnext
+
+                # weight decay (optional)
+                if trainInfo.param.weight_decay > 0: 
+                    blob.data[...] *= (1.0 - trainInfo.alpha * trainInfo.param.weight_decay)
 
         # (try to) extract some useful info from the net
         loss = out.get('loss', None)
