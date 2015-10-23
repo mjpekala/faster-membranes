@@ -44,4 +44,6 @@ Note that the following modifications to Caffe are required:
 ```
 
 - For Kasthuri data set
+```
    make EXPERIMENT=KAST CNN=n3_py GPU=5 kast-train
+```
