@@ -2,7 +2,8 @@
 This repository hosts an experiment for segmenting EM images, with the
 goal of higher throughput relative to exhaustive application of sliding window CNNs.
 
-This code is in an experimental state and subject to change.
+Note: this code is in an experimental state and subject to change.
+Furthermore, no attempt has (yet) been made to optimize these CNN models.
 
 
 ## Quick start
@@ -41,3 +42,6 @@ Note that the following modifications to Caffe are required:
     make CNN=lenet_lmdb caffe-time-cpu
     make CNN=lenet_lmdb cct-train
 ```
+
+- For Kasthuri data set
+   make EXPERIMENT=KAST CNN=n3_py GPU=5 kast-train
