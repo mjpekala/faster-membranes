@@ -22,7 +22,7 @@ python threshold_labels.py train-labels.npy
 echo ""
 echo "[info]: obtaining EM test data - please wait a few moments..."
 echo ""
-curl http://openconnecto.me/ocp/ca/kasthuri11cc/image/hdf5/1/1/5472,6496/8712,9736/1000,1256/ > test-volume.hdf5
+curl http://openconnecto.me/ocp/ca/kasthuri11cc/image/hdf5/1/5472,6496/8712,9736/1000,1256/ > test-volume.hdf5
 echo "[info]: extracting volume..."
 python extract_volume.py test-volume.hdf5
 
