@@ -162,10 +162,10 @@ kast-train:
 	$(PYNOHUP) $(SRC)/emcnn.py \
 		--x-train $(BASE_DIR)/Data/Kasthuri11/train-volume.npy \
 		--y-train $(BASE_DIR)/Data/Kasthuri11/train-labels-thresh.npy \
-		--train-slices "range(0,95)" \
+		--train-slices "range(0,80)" \
 		--x-valid $(BASE_DIR)/Data/Kasthuri11/train-volume.npy \
 		--y-valid $(BASE_DIR)/Data/Kasthuri11/train-labels-thresh.npy \
-		--valid-slices "range(95,100)" \
+		--valid-slices "range(90,100)" \
 		--solver $(MODEL_DIR)/$(CNN)_solver.prototxt \
 		--rotate-data $(ROTATE) \
 		--gpu $(GPU) \
