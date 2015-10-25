@@ -586,13 +586,14 @@ def _train_network(args):
     # Do training; save results
     #----------------------------------------
     trainInfo = TrainInfo(solverParam)
+    omitLabels = set(args.omitLabels).union([-1,])   # always omit -1
     sys.stdout.flush()
 
     while trainInfo.iter < solverParam.max_iter: 
         print "[emCNN]: Starting epoch %d" % trainInfo.epoch
         train_one_epoch(solver, Xtrain, Ytrain, 
             trainInfo, batchDim, outDir, 
-            omitLabels=args.omitLabels,
+            omitLabels=omitLabels,
             data_augment=syn_func)
 
         print "[emCNN]: Making predictions on validation data..."
