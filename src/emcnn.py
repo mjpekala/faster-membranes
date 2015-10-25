@@ -3,7 +3,6 @@
 This code uses Caffe's python API to solve per-pixel classification
 problems on EM data sets.  
 
-This code is a slightly refactored/merged version of {train.py, deploy.py}
 The specific command line parameters used dictate whether this is used
 to train a new CNN or deploy and existing one.
 
@@ -20,7 +19,8 @@ o Your convolutional neural network (CNN) must have the following
       acc    |  Accuracy         |  Reporting training performance
       prob   |  Softmax          |  Extracting estimates
 
-o The data volume (denoted X in this code) has values in [0 255]
+o The input data volume (denoted X in this code) is 
+  assumed to take values in [0 255]
   (this is the case for ISBI 2012)
 
 o The labels volume (denoted Y) are integer valued.  
@@ -41,7 +41,6 @@ __license__ = "Apache 2.0"
 import sys, os, argparse, time, datetime
 from pprint import pprint
 from random import shuffle
-import copy
 import pdb
 
 import numpy as np
@@ -49,6 +48,7 @@ import scipy
 
 from sobol_lib import i4_sobol_generate as sobol
 import emlib
+from pycaffe2 import SGDSolverMemoryData
 
 
 
@@ -189,18 +189,6 @@ prune_border_3d = lambda X, bs: X[:, bs:(-bs), bs:(-bs)]
 prune_border_4d = lambda X, bs: X[:, :, bs:(-bs), bs:(-bs)]
 
 
-def _print_net(net):
-    """Shows some info re. a Caffe network to stdout
-    """
-    for name, blobs in net.params.iteritems():
-        for bIdx, b in enumerate(blobs):
-            print("  %s[%d] : %s" % (name, bIdx, b.data.shape))
-    for ii,layer in enumerate(net.layers):
-        print("  layer %d: %s" % (ii, layer.type))
-        for jj,blob in enumerate(layer.blobs):
-            print("    blob %d has size %s" % (jj, str(blob.data.shape)))
-
-
             
 def _omit_labels(Y, extraOmits=[]):
     """Determines which labels to omit.
@@ -271,7 +259,7 @@ def _load_data(xName, yName, tileRadius, onlySlices, omitLabels=None):
         Y = emlib.fix_class_labels(Y, omitLabels).astype(np.int32)
 
         print('[emCNN]:    yAll is %s' % str(np.unique(Y)))
-        print('[emCNN]:    will use %0.2f%% of training volume' % (100.0 - pctOmitted))
+        print('[emCNN]:    will use %0.2f%% of volume' % (100.0 - pctOmitted))
 
         Y = emlib.mirror_edges(Y, tileRadius)
 
@@ -284,53 +272,6 @@ def _load_data(xName, yName, tileRadius, onlySlices, omitLabels=None):
 #-------------------------------------------------------------------------------
 # Functions for training a CNN
 #-------------------------------------------------------------------------------
-
-class TrainInfo:
-    """
-    Used to store/update CNN parameters over time.
-    """
-
-    def __init__(self, solverParam):
-        self.param = copy.deepcopy(solverParam)
-
-        self.isModeStep = (solverParam.lr_policy == u'step')
-
-        # This code only supports some learning strategies
-        if not self.isModeStep:
-            raise ValueError('Sorry - I only support step policy at this time')
-
-        if (solverParam.solver_type != solverParam.SolverType.Value('SGD')):
-            raise ValueError('Sorry - I only support SGD at this time')
-
-        # keeps track of the current mini-batch iteration and how
-        # long the processing has taken so far
-        self.iter = 0
-        self.epoch = 0
-        self.cnnTime = 0
-        self.netTime = 0
-
-        #--------------------------------------------------
-        # SGD parameters.  SGD with momentum is of the form:
-        #
-        #    V_{t+1} = \mu V_t - \alpha \nablaL(W_t)
-        #    W_{t+1} = W_t + V_{t+1}
-        #
-        # where W are the weights and V the previous update.
-        # Ref: http://caffe.berkeleyvision.org/tutorial/solver.html
-        #
-        #--------------------------------------------------
-        self.alpha = solverParam.base_lr  # := learning rate
-        self.mu = solverParam.momentum    # := momentum
-        self.gamma = solverParam.gamma    # := step factor
-        self.V = {}                       # := previous values (for momentum)
-
-        assert(self.alpha > 0)
-        assert(self.gamma > 0)
-        assert(self.mu >= 0)
-
-
-        # XXX: layer-specific weights
-
 
 
 def _xform_minibatch(X, rotate=False, prob=0.5):
@@ -396,22 +337,17 @@ def _xform_minibatch(X, rotate=False, prob=0.5):
 
 
 
-def train_one_epoch(solver, X, Y, 
-        trainInfo, 
+def train_one_epoch(solverMD, X, Y, 
         batchDim,
         outDir='./', 
         omitLabels=[], 
         data_augment=None):
     """ Trains a CNN for a single epoch.
 
-    You can call multiple times - just be sure to pass in the latest
-    trainInfo object each time.
-
     PARAMETERS:
-      solver    : a PyCaffe solver object
+      solverMD  : an SGDSolverMemoryData object
       X         : a data volume/tensor with dimensions (#slices, height, width)
       Y         : a labels tensor with same size as X
-      trainInfo : a TrainInfo object (will be modified by this function!!)
       batchDim  : the tuple (#classes, minibatchSize, height, width)
       outDir    : output directory (e.g. for model snapshots)
       omitLabels : class labels to skip during training (or [] for none)
@@ -449,69 +385,24 @@ def train_one_epoch(solver, X, Y,
         if data_augment is not None:
             Xi = data_augment(Xi)
 
-        # convert labels to a 4d tensor
-        yiTensor = np.ascontiguousarray(yi[:, np.newaxis, np.newaxis, np.newaxis])
-
         assert(not np.any(np.isnan(Xi)))
         assert(not np.any(np.isnan(yi)))
 
         #----------------------------------------
         # one forward/backward pass and update weights
         #----------------------------------------
-        _tmp = time.time()
-        solver.net.set_input_arrays(Xi, yiTensor)
-        out = solver.net.forward()
-        assert(np.all(solver.net.blobs['data'].data == Xi))
-        assert(np.all(solver.net.blobs['label'].data == yiTensor))
-        solver.net.backward()
-
-        # SGD with momentum
-        for lIdx, layer in enumerate(solver.net.layers):
-            for bIdx, blob in enumerate(layer.blobs): 
-                if np.any(np.isnan(blob.diff)): 
-                    raise RuntimeError("NaN detected in gradient of layer %d" % lIdx)
-                key = (lIdx, bIdx)
-                V = trainInfo.V.get(key, 0.0)
-                Vnext = (trainInfo.mu * V) - (trainInfo.alpha * blob.diff)
-                blob.data[...] += Vnext
-                trainInfo.V[key] = Vnext
-
-                # weight decay (optional)
-                if trainInfo.param.weight_decay > 0: 
-                    blob.data[...] *= (1.0 - trainInfo.alpha * trainInfo.param.weight_decay)
-
-        # (try to) extract some useful info from the net
-        loss = out.get('loss', None)
-        acc = out.get('acc', None)
-
-        # update run statistics
-        trainInfo.cnnTime += time.time() - _tmp
-        trainInfo.iter += 1
-        trainInfo.netTime += (time.time() - tic)
-        tic = time.time()
+        out = solverMD.step(Xi, yi)
 
         #----------------------------------------
         # Some events occur on regular intervals.
         # Address these here.
         #----------------------------------------
-        if (trainInfo.iter % trainInfo.param.snapshot) == 0:
-            fn = os.path.join(outDir, 'iter_%06d.caffemodel' % trainInfo.iter)
-            solver.net.save(str(fn))
+        if solverMD.is_time_for_snapshot():
+            fn = os.path.join(outDir, 'iter_%06d.caffemodel' % solverMD._iter)
+            solverMD._solver.net.save(str(fn))
+            print "[emCNN]:    saved snapshot."
 
-        if trainInfo.isModeStep and ((trainInfo.iter % trainInfo.param.stepsize) ==0):
-            trainInfo.alpha *= trainInfo.gamma
-
-        if (trainInfo.iter % trainInfo.param.display) == 1: 
-            print "[emCNN]: completed iteration %d of %d (epoch=%0.2f);" % (trainInfo.iter, trainInfo.param.max_iter, trainInfo.epoch+epochPct)
-            print "[emCNN]:     %0.2f min elapsed (%0.2f CNN min)" % (trainInfo.netTime/60., trainInfo.cnnTime/60.)
-            print "[emCNN]:     alpha=%0.4e" % (trainInfo.alpha)
-            if loss: 
-                print "[emCNN]:     loss=%0.3f" % loss
-            if acc: 
-                print "[emCNN]:     accuracy (train volume)=%0.3f" % acc
-            sys.stdout.flush()
- 
-        if trainInfo.iter >= trainInfo.param.max_iter:
+        if solverMD.is_training_complete():
             break  # we hit max_iter on a non-epoch boundary...all done.
                 
     # all finished with this epoch
@@ -560,7 +451,8 @@ def _train_network(args):
     # Note this assumes a relatively recent PyCaffe
     #----------------------------------------
     solver = caffe.SGDSolver(args.solver)
-    _print_net(solver.net)
+    solverMD = SGDSolverMemoryData(solver, solverParam)
+    solverMD.print_network()
 
     #----------------------------------------
     # Load data
@@ -585,16 +477,19 @@ def _train_network(args):
     #----------------------------------------
     # Do training; save results
     #----------------------------------------
-    trainInfo = TrainInfo(solverParam)
     omitLabels = set(args.omitLabels).union([-1,])   # always omit -1
+    currEpoch = 1
     sys.stdout.flush()
 
-    while trainInfo.iter < solverParam.max_iter: 
-        print "[emCNN]: Starting epoch %d" % trainInfo.epoch
-        train_one_epoch(solver, Xtrain, Ytrain, 
-            trainInfo, batchDim, outDir, 
+    while not solverMD.is_training_complete():
+        print "[emCNN]: Starting epoch %d" % currEpoch
+
+        train_one_epoch(solverMD, Xtrain, Ytrain, 
+            batchDim, outDir, 
             omitLabels=omitLabels,
             data_augment=syn_func)
+
+        currEpoch += 1
 
         print "[emCNN]: Making predictions on validation data..."
         Mask = np.ones(Xvalid.shape, dtype=np.bool)
@@ -611,7 +506,6 @@ def _train_network(args):
         print('[emCNN]: Validation set performance:')
         emlib.metrics(prune_border_3d(Yvalid, bs), Yhat, display=True)
 
-        trainInfo.epoch += 1
  
     solver.net.save(str(os.path.join(outDir, 'final.caffemodel')))
     np.save(os.path.join(outDir, 'Yhat.npz'), Prob)
