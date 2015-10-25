@@ -402,7 +402,7 @@ def train_one_epoch(solverMD, X, Y,
         if solverMD.is_time_for_snapshot():
             fn = os.path.join(outDir, 'iter_%06d.caffemodel' % solverMD._iter)
             solverMD._solver.net.save(str(fn))
-            print "[emCNN]:    saved snapshot."
+            print "[emCNN]: Saved snapshot."
 
         if solverMD.is_training_complete():
             break  # we hit max_iter on a non-epoch boundary...all done.
