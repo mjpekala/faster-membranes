@@ -362,7 +362,9 @@ def train_one_epoch(solverMD, X, Y,
     yi = np.zeros((batchDim[0],), dtype=np.float32)
     yMax = np.max(Y).astype(np.int32)
     
-    tic = time.time()
+    lastChatter = -2
+    startTime = time.time()
+
     it = emlib.stratified_interior_pixel_generator(Y, tileRadius, batchDim[0], omitLabels=omitLabels) 
 
     for Idx, epochPct in it: 
@@ -404,6 +406,13 @@ def train_one_epoch(solverMD, X, Y,
 
         if solverMD.is_training_complete():
             break  # we hit max_iter on a non-epoch boundary...all done.
+
+
+        elapsed = (time.time() - startTime) / 60.0
+        if (lastChatter+2) < elapsed:  # notify progress every 2 min
+            lastChatter = elapsed
+            print('[emCNN]: we are %0.2f%% complete with this epoch' % (100.*epochPct))
+            sys.stdout.flush()
                 
     # all finished with this epoch
     print "[emCNN]:    epoch complete."
