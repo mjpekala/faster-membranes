@@ -172,3 +172,15 @@ kast-train:
 		--out-dir $(OUT_DIR) \
 		> $(OUT_DIR)/pycaffe.$(CNN).kast.train.out &
 
+
+kast-deploy:
+	@mkdir -p $(OUT_DIR)
+	$(PYNOHUP) $(SRC)/emcnn.py \
+		--x-deploy $(BASE_DIR)/Data/Kasthuri11/test-volume.npy \
+		--network $(MODEL_DIR)/$(CNN)_net.prototxt \
+		--model $(OUT_DIR)/$(CAFFE_MODEL) \
+		--gpu $(GPU) \
+		--eval-pct $(EVAL_PCT) \
+		--out-dir $(OUT_DIR) \
+		> $(OUT_DIR)/pycaffe.$(CNN).kast.deploy.out &
+
