@@ -46,4 +46,5 @@ Note that the following modifications to Caffe are required:
 - For Kasthuri data set
 ```
    make EXPERIMENT=KAST CNN=n3_py GPU=5 kast-train
+   make EXPERIMENT=KAST CNN=n3_py GPU=4 EVAL_PCT=0.1 CAFFE_MODEL=iter_190000.caffemodel kast-deploy
 ```
