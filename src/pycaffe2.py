@@ -182,7 +182,11 @@ class SGDSolverMemoryData:
                     raise RuntimeError("NaN detected in gradient of layer %d" % lIdx) 
                 # Some networks scale the learning rate for weights 
                 # and biases differently; handle that here:
-                # TODO: figure out where the layer-specific parameters live
+                # TODO: figure out where the layer-specific parameters live.
+                #    In c++, they are here:
+                #      this->net_->params_lr()
+                #      this->net_->params_weight_decay() 
+                # Unclear if/where these are available via python...
                 alphaLocal = alpha * 1.0 
                 decayLocal = self._param.weight_decay * 1.0
 
