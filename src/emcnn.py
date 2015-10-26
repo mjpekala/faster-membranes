@@ -417,7 +417,6 @@ def train_one_epoch(solverMD, X, Y,
     # all finished with this epoch
     print "[emCNN]:    epoch complete."
     sys.stdout.flush()
-    return loss, acc
 
 
 
