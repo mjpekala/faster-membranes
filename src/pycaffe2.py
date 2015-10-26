@@ -98,6 +98,7 @@ class SGDSolverMemoryData:
     def print_network(self): 
         """Displays network information to stdout.
         """ 
+        # XXX: difference between params and layers?
         for name, blobs in self._solver.net.params.iteritems(): 
             for bIdx, b in enumerate(blobs): 
                 print("  %s[%d] : %s" % (name, bIdx, b.data.shape))
