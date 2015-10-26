@@ -676,7 +676,6 @@ def _deploy_network(args):
     #----------------------------------------
     phaseTest = 1  # 1 := test mode
     net = caffe.Net(netFn, args.model, phaseTest)
-    _print_net(net)
 
     #----------------------------------------
     # Load data
