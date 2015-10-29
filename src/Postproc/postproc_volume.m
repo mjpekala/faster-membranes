@@ -1,11 +1,25 @@
 function Yhat = postproc_volume(YhatRaw, outFileName)
 % POSTPROC_VOLUME  Postprocess a volume of CNN predictions
 %
-%  Saves result in a multi-page .tiff file suitable for submission
-%  to ISBI 2012.
+%      Yhat = postproc_volume(Yin, 'outputFile')
+%
+%   where,
+%      Yin  :  a tensor of probability estimates with dimensions 
+%                    (nClasses, nSlices, width, height)
+%              -or-
+%                    (width, height, nSlices)
+%              In the former case, this code will reshape the volume
+%              to the latter case (with three dimensions).
+%              The four dimensional case is an artifact of how we 
+%              save estimates computed using Caffe.
+%
+%     outputFile : The .tiff output file name (string).
+%                  Will be a multi-page tiff in ISBI 2012 format.
+%
+%     Yhat : The inpainted result; a tensor with dimensions (width, height, nSlices)
 %
 %  Note: make sure to add './inpaint' to matlab's search path
-%  before calling this function!
+%  before calling this function!  (e.g. by calling updatepath.m)
 
 % mjp 2015
 
@@ -21,7 +35,8 @@ end
 assert(length(size(YhatRaw)) == 3);
 
 
-% Fill in any points not explicitly evaluated
+% Fill in any points not explicitly evaluated.
+% An assumption here is that any negative values should be inpainted.
 YhatRaw(YhatRaw < 0) = NaN;
 if any(isnan(YhatRaw(:)))
     YhatRaw = inpaint_prob_map(YhatRaw);
