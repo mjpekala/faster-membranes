@@ -1,7 +1,13 @@
-function Yhat = postproc_isbi(YhatRaw, outFileName)
+function Yhat = postproc_volume(YhatRaw, outFileName)
 % POSTPROC_VOLUME  Postprocess a volume of CNN predictions
 %
-%  Saves result in a multi-page .tiff file suitable for submission to ISBI 2012.
+%  Saves result in a multi-page .tiff file suitable for submission
+%  to ISBI 2012.
+%
+%  Note: make sure to add './inpaint' to matlab's search path
+%  before calling this function!
+
+% mjp 2015
 
 outFileName = [outFileName '.tif'];
 
@@ -9,8 +15,10 @@ outFileName = [outFileName '.tif'];
 if length(size(YhatRaw)) == 4
     YhatRaw = YhatRaw(2,:,:,:);   % probabilities for class 1 (membrane)
     YhatRaw = permute(YhatRaw, [3 4 2 1]);  % implicit squeeze
-    assert(length(size(YhatRaw)) == 3);
 end
+
+% assume a tensor of shape (width, height, slices)
+assert(length(size(YhatRaw)) == 3);
 
 
 % Fill in any points not explicitly evaluated
