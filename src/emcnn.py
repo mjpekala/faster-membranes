@@ -40,7 +40,7 @@ __license__ = "Apache 2.0"
 
 import sys, os, argparse, time, datetime
 from pprint import pprint
-from random import shuffle
+from random import shuffle, choice
 import pdb
 
 import numpy as np
@@ -274,64 +274,79 @@ def _load_data(xName, yName, tileRadius, onlySlices, omitLabels=None):
 #-------------------------------------------------------------------------------
 
 
-def _xform_minibatch(X, rotate=False, prob=0.5):
+def _xform_minibatch(X, arbitraryRotation=False):
     """Synthetic data augmentation for one mini-batch.
-    
+
+    The default set of data augmentation operations correspond to
+    the symmetries of the square (a non abelian group).  The
+    elements of this group are:
+
+      o four rotations (0, pi/2, pi, 3*pi/4)
+        Denote these by: R0 R1 R2 R3
+
+      o two mirror images (about y-axis or x-axis)
+        Denote these by: M1 M2
+
+      o two diagonal flips (about y=-x or y=x)
+        Denote these by: D1 D2
+
+    This page has a nice visual depiction:
+      http://www.cs.umb.edu/~eb/d4/
+
+
     Parameters: 
        X := Mini-batch data (# slices, # channels, rows, colums) 
        
-       rotate := a boolean; when true, will rotate the mini-batch X
+       arbitraryRotation := a boolean; when true, will rotate the mini-batch X
                  by some angle in [0, 2*pi)
-
-       prob := probability of applying any given operation
-
-    Note: for some reason, the implementation of row and column reversals, e.g.
-               X[:,:,::-1,:]
-          break PyCaffe.  Numpy must be doing something under the hood 
-          (e.g. changing from C order to Fortran order) to implement this 
-          efficiently which is incompatible w/ PyCaffe.  
-          Hence the explicit construction of X2 with order 'C' in the
-          nested functions below.
     """
 
-    def fliplr(X):
-        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
-        X2[:,:,:,:] = X[:,:,::-1,:]
-        return X2
+    def R0(X):
+        return X  # this is the identity map
 
-    def flipud(X):
-        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
-        X2[:,:,:,:] = X[:,:,:,::-1]
-        return X2
+    def M1(X):
+        return X[:,:,::-1,:]
 
-    def transpose(X):
-        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
-        X2[:,:,:,:] = np.transpose(X, [0, 1, 3, 2])
-        return X2
+    def M2(X): 
+        return X[:,:,:,::-1]
 
-    def identity(X): return X
+    def D1(X):
+        return np.transpose(X, [0, 1, 3, 2])
 
-    prob = min(1.0, prob)
-    prob = max(0.0, prob)
+    def R1(X):
+        return D1(M2(X))   # = rot90 on the last two dimensions
 
-    if rotate: 
+    def R2(X):
+        return M2(M1(X))
+
+    def R3(X): 
+        return D2(M2(X))
+
+    def D2(X):
+        return R1(M1(X))
+
+
+    if arbitraryRotation: 
         # rotation by an arbitrary angle 
         # Note: this is very slow!!
         # Note: this should probably be implemented at a higher level
         #       (than the individual mini-batch) so we can incorporate
-        #       context rather than filling in pixels.
+        #       context rather than filling in pixels with a background color.
         angle = np.random.rand() * 360.0 
         fillColor = np.max(X) 
         X2 = scipy.ndimage.rotate(X, angle, axes=(2,3), reshape=False, cval=fillColor)
     else:
-        ops = []
-        ops.append( fliplr if np.random.rand() < prob else identity )
-        ops.append( flipud if np.random.rand() < prob else identity )
-        ops.append( transpose if np.random.rand() < prob else identity )
-        shuffle(ops)
-        X2 = ops[0](X)
-        for op in ops[1:]:
-            X2 = op(X2)
+        symmetries = [R0, R1, R2, R3, M1, M2, D1, D2]
+        op = choice(symmetries) 
+        
+        # For some reason, the implementation of row and column reversals, 
+        #     e.g.      X[:,:,::-1,:]
+        # break PyCaffe.  Numpy must be doing something under the hood 
+        # (e.g. changing from C order to Fortran order) to implement this 
+        # efficiently which is incompatible w/ PyCaffe.  
+        # Hence the explicit construction of X2 with order 'C' below.
+        X2 = np.zeros(X.shape, dtype=np.float32, order='C') 
+        X2[...] = op(X)
 
     return X2
 
@@ -448,10 +463,10 @@ def _train_network(args):
 
     # choose a synthetic data generating function
     if args.rotateData:
-        syn_func = lambda V: _xform_minibatch(V, True)
+        syn_func = lambda V: _xform_minibatch(V, arbitraryRotation=True)
         print('[emCNN]:   WARNING: applying arbitrary rotations to data.  This may degrade performance in some cases...\n')
     else:
-        syn_func = lambda V: _xform_minibatch(V, False)
+        syn_func = lambda V: _xform_minibatch(V, arbitraryRotation=False)
 
 
     #----------------------------------------
