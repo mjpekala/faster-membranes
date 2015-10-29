@@ -1,7 +1,7 @@
 # For use with caffe's python interface.
 
 
-name: "CiresanN3"
+name: "DeepNetwork"
 
 layer {
   type: "MemoryData"
@@ -31,8 +31,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -57,8 +56,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -98,8 +96,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -124,8 +121,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -167,8 +163,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -193,8 +188,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -220,8 +214,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -265,8 +258,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -291,8 +283,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -318,8 +309,7 @@ layer {
     kernel_size: 3
     stride: 1
     weight_filler {
-      type: "gaussian"
-      std: 0.0001
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -363,8 +353,7 @@ layer {
 #    kernel_size: 3
 #    stride: 1
 #    weight_filler {
-#      type: "gaussian"
-#      std: 0.0001
+#      type: "xavier"
 #    }
 #    bias_filler {
 #      type: "constant"
@@ -389,8 +378,7 @@ layer {
 #    kernel_size: 3
 #    stride: 1
 #    weight_filler {
-#      type: "gaussian"
-#      std: 0.0001
+#      type: "xavier"
 #    }
 #    bias_filler {
 #      type: "constant"
@@ -416,8 +404,7 @@ layer {
 #    kernel_size: 3
 #    stride: 1
 #    weight_filler {
-#      type: "gaussian"
-#      std: 0.0001
+#      type: "xavier"
 #    }
 #    bias_filler {
 #      type: "constant"
@@ -458,8 +445,7 @@ layer {
   inner_product_param {
     num_output: 200
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
@@ -482,8 +468,7 @@ layer {
   inner_product_param {
     num_output: 2
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
