@@ -198,12 +198,20 @@ class SGDSolverMemoryData:
                 blob.data[...] += Vnext
                 self._V[key] = Vnext 
                        
-                # also, weight decay (optional)
+                # Also implement weight decay (optional).
+                # The weight decay formula (without momentum) looks like:
+                #
+                #     w_{i+1} = w_i - alpha \nabla grad - alpha * lambda * w_i
+                #
+                # where alpha is the learning rate and lambda the weight decay.
+                #
+                # Here I've applied it after the gradient step using:
+                #
+                #    w_{i+1} = w_i - alpha * lambda* w_i
+                #            = w_i * (1 - alpha * lambda)
+                #
                 # XXX: make sure it is correct to apply in this
                 #      manner (i.e. apart from momentum)
-                #
-                #   w_i <- w_i - alpha \nabla grad - alpha * lambda * w_i
-                #
                 if decayLocal > 0:
                     blob.data[...] *= (1.0 - alphaLocal * decayLocal)
 
