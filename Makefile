@@ -78,7 +78,7 @@ isbi2012-deploy:
 		--gpu $(GPU) \
 		--eval-pct $(EVAL_PCT) \
 		--out-dir $(OUT_DIR) \
-		> $(OUT_DIR)/pycaffe.$(CNN).predict.out &
+		> $(OUT_DIR)/pycaffe.$(CNN).deploy.$(NOW).out &
 
 
 isbi2012-uq:
@@ -182,5 +182,5 @@ kast-deploy:
 		--gpu $(GPU) \
 		--eval-pct $(EVAL_PCT) \
 		--out-dir $(OUT_DIR) \
-		> $(OUT_DIR)/pycaffe.$(CNN).kast.deploy.out &
+		> $(OUT_DIR)/pycaffe.$(CNN).kast.deploy.$(NOW).out &
 
