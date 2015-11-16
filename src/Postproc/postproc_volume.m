@@ -27,13 +27,17 @@ function Yhat = postproc_volume(YhatRaw, varargin)
 
 % mjp 2015
 
+defaultFilter = logical(strel('disk', 2).getnhood);
+
 p = inputParser;
 p.addRequired('YhatRaw');
 p.addOptional('tiffout', '');
 p.addOptional('invert', 1);
-p.addOptional('fdim', 7);          % filter size
-p.addOptional('ford', 7*7-3);      % order parameter for filter
+p.addOptional('filt', defaultFilter);
+p.addOptional('ford', round(sum(defaultFilter(:))/2));
 p.parse(YhatRaw, varargin{:});
+p = p.Results;
+
 
 
 % change from 4D caffe tensor to 3D EM tensor (if needed)
@@ -58,28 +62,24 @@ end
 % Ciresan recommended a 2 pixel median filter.
 % For cases where we inpaint though, it may be preferred to
 % use something closer to a maximum filter.
-if p.Results.fdim > 0,  
-    n = p.Results.fdim;   ord = p.Results.ford;
-    
-    filt = true(n);
+if numel(p.filt) > 0,  
     Yhat = zeros(size(YhatRaw));
     for ii = 1:size(YhatRaw,3)
-        Yhat(:,:,ii) = ordfilt2(YhatRaw(:,:,ii), ord, filt);  
+        Yhat(:,:,ii) = ordfilt2(YhatRaw(:,:,ii), p.ford, p.filt);  
     end
-    keyboard % TEMP
 end
 
 
 % invert so that low values correspond to high probability of
 % membrane (ISBI2012 convention).
-if p.Results.invert
+if p.invert
     Yhat = 1 - Yhat;
 end
 
 
 % save as multi-page tiff (optional)
-if length(p.Results.tiffout) 
-    outFileName = [p.Results.tiffout '.tif'];
+if length(p.tiffout) 
+    outFileName = [p.tiffout '.tif'];
     fprintf('[%s]: Writing results to "%s"\n', mfilename, outFileName);
     save_multi_tiff(Yhat, outFileName);
 end
