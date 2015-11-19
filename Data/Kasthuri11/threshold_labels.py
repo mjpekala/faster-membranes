@@ -23,7 +23,6 @@ import numpy as np
 from scipy.stats.mstats import mquantiles as quantile
 import h5py
 
-import pdb # TEMP
 
 # Our thresholds will be based on quantiles.
 THRESH_QUANTILES = [.2, .9]
