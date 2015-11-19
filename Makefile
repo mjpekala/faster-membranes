@@ -154,9 +154,11 @@ cct-fwd-time:
 
 
 #-------------------------------------------------------------------------------
-#  III. Probability maps for Kasthuri data set
+#  III. Construct maps for the Kasthuri data set
 #-------------------------------------------------------------------------------
 
+# Train on the first 80 slices, reserving the rest for validation.
+# This creates the model needed for the deploy targets.
 kast-train:
 	@mkdir -p $(OUT_DIR)
 	$(PYNOHUP) $(SRC)/emcnn.py \
@@ -173,7 +175,22 @@ kast-train:
 		> $(OUT_DIR)/pycaffe.$(CNN).kast.train.out &
 
 
-kast-deploy:
+# Deploy classifier on training data set.
+# This is only useful for diagnostic purposes.
+kast-deploy-train:
+	@mkdir -p $(OUT_DIR)
+	$(PYNOHUP) $(SRC)/emcnn.py \
+		--x-deploy $(BASE_DIR)/Data/Kasthuri11/train-volume.npy \
+		--network $(MODEL_DIR)/$(CNN)_net.prototxt \
+		--model $(OUT_DIR)/$(CAFFE_MODEL) \
+		--gpu $(GPU) \
+		--eval-pct $(EVAL_PCT) \
+		--out-dir $(OUT_DIR) \
+		> $(OUT_DIR)/pycaffe.$(CNN).kast.deploy.train.$(NOW).out &
+
+
+# Deploy classifier on the test data set.
+kast-deploy-test:
 	@mkdir -p $(OUT_DIR)
 	$(PYNOHUP) $(SRC)/emcnn.py \
 		--x-deploy $(BASE_DIR)/Data/Kasthuri11/test-volume.npy \
@@ -182,5 +199,5 @@ kast-deploy:
 		--gpu $(GPU) \
 		--eval-pct $(EVAL_PCT) \
 		--out-dir $(OUT_DIR) \
-		> $(OUT_DIR)/pycaffe.$(CNN).kast.deploy.$(NOW).out &
+		> $(OUT_DIR)/pycaffe.$(CNN).kast.deploy.test.$(NOW).out &
 
