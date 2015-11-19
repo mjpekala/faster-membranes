@@ -1,22 +1,48 @@
-# Use this to convert membrane probabilities into class labels.
+# THRESHOLD_LABELS  Use this to convert membrane probabilities into class labels.
+#
+#   The way we are setting this problem up is a little unusual.
+#   Instead of gold standard ground truth class labels, we are using
+#   the outputs of another classifier that we trust (but do not have
+#   access to) as a source of ground truth.
+#
+#   The trusted classifier generates outputs that live in [0 1].  We
+#   could try to match these outputs by setting up a regression
+#   problem.  Alternately, we can map these classifier outputs to
+#   binary class labels by thresholding.
+#
+#   This script takes the latter approach.  Rather than pick a single
+#   score threshold, we pick two thresholds.  Scores above the upper
+#   threshold are used as positive class labels.  Those below the
+#   lower score threshold are negative class labels.  Those in between
+#   are not used for training.
+#
+
 
 import sys, os
 import numpy as np
+from scipy.stats.mstats import mquantiles as quantile
 import h5py
 
+import pdb # TEMP
 
-THRESH_UPPER = .6
-THRESH_LOWER = .1
+# Our thresholds will be based on quantiles.
+THRESH_QUANTILES = [.2, .9]
 
-inFile = sys.argv[1]
-if not os.path.exists(inFile):
-	raise RuntimeError('could not find input file %s' % inFile)
 
-P = np.load(inFile)
+if __name__ == "__main__":
+    inFile = sys.argv[1]
+    if not os.path.exists(inFile):
+        raise RuntimeError('could not find input file %s' % inFile)
 
-Y = -1 * np.ones(P.shape, dtype=np.uint8)
-Y[P > THRESH_UPPER] = 1     # high probability -> use as positive examples
-Y[P < THRESH_LOWER] = 0     # low probability -> use as negative examples
+    P = np.load(inFile)
 
-outFile = inFile.replace('.npy', '') + '-thresh'
-np.save(outFile, Y)
+    thresh = quantile(np.reshape(P, (P.size,)), THRESH_QUANTILES);
+    print('[info]: Thresholding data using quantiles: %s' % (THRESH_QUANTILES))
+    print('[info]: Resulting thresholds:              %s' % (thresh))
+
+    Y = -1 * np.ones(P.shape, dtype=np.uint8)
+    Y[P >= thresh[1]] = 1     # high probability -> use as positive examples
+    Y[P <= thresh[0]] = 0     # low probability -> use as negative examples
+ 
+    outFile = inFile.replace('.npy', '') + '-thresh'
+    np.save(outFile, Y)
