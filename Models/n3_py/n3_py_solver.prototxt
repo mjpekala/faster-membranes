@@ -43,7 +43,7 @@ weight_decay: 0.0005
 # Display every 100 iterations
 display: 100
 # snapshot intermediate results
-snapshot: 5000
+snapshot: 10000
 
 # Note: we'll probably override the snapshot prefix.
 snapshot_prefix: "./Models/n3_py/"
