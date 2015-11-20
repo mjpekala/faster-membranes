@@ -1,11 +1,13 @@
 function view_train_labels(Y)
-% VIEW_TRAIN_LABELS   Used to view impact of different thresholds on 
-%                     the training data labe.s
+% VIEW_TRAIN_LABELS   View impact of different thresholds on 
+%                     the training data labels
 %
 %     view_train_labels(Y)
 %
 %  where:
 %     Y := an (m x n x p) tensor of p images
+
+% Nov 2015, mjp
 
     
 assert(ndims(Y) == 3);
