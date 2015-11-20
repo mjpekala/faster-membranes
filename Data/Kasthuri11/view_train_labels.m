@@ -81,11 +81,13 @@ function plot_slice(z, lb, ub)
     Ythresh(Yz <= lb) = 0;
     Ythresh(Yz >= ub) = 1;
     
+    pct = 100 - 100 * sum(Ythresh(:) >= 0) / numel(Ythresh);
+    
     figure(fig);
     imagesc(Ythresh)
     colorbar;
     set(gca, 'XTick', [], 'YTick', []);
-    title(sprintf('slice %d / %d', z, p));
+    title(sprintf('slice %d / %d  (%0.2f%% of data omitted)', z, p, pct));
 end
 
 
