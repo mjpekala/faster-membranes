@@ -16,6 +16,11 @@ assert(ndims(Y) == 3);
 idx0 = 1;
 thresh0 = [0 .7];
 
+
+figure; hist(Y(:)); title('Distribution of scores');
+xlabel('score');
+
+
 fig = figure('Position', [200, 200, 600, 500]);
 
 sZ = uicontrol('Style', 'slider', ...
