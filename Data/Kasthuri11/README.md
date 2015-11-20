@@ -1,8 +1,8 @@
 ## The Kasthuri data set
 
-The Kasthuri 11 data set consists of a training volume, a test volume, and a set of training labels corresponding to probability estimates created from a CNN.  To make a local copy of this data set run the script
+The Kasthuri 11 data set consists of a training volume, a test volume, and a set of training labels corresponding to probability estimates created from a CNN.  To make a local copy of this data set run (from the command line):
 ```
-    getdata.sh
+    ./getdata.sh
 ```
 
 This will download the data and also run the necessary preprocessing.  Necessary preprocessing steps include:
