@@ -24,8 +24,9 @@ from scipy.stats.mstats import mquantiles as quantile
 import h5py
 
 
-# Our thresholds will be based on quantiles.
+# Different ways of thresholding the scores in [0 1]
 THRESH_QUANTILES = [.2, .9]
+THRESH_MANUAL = [.1, .6]
 
 
 if __name__ == "__main__":
@@ -35,9 +36,12 @@ if __name__ == "__main__":
 
     P = np.load(inFile)
 
-    thresh = quantile(np.reshape(P, (P.size,)), THRESH_QUANTILES);
-    print('[info]: Thresholding data using quantiles: %s' % (THRESH_QUANTILES))
-    print('[info]: Resulting thresholds:              %s' % (thresh))
+    if True: 
+        thresh = THRESH_MANUAL
+    else: 
+        thresh = quantile(np.reshape(P, (P.size,)), THRESH_QUANTILES)
+        print('[info]: Thresholding data using quantiles: %s' % (THRESH_QUANTILES)) 
+        print('[info]: Resulting thresholds:              %s' % (thresh))
 
     Y = -1 * np.ones(P.shape, dtype=np.uint8)
     Y[P >= thresh[1]] = 1     # high probability -> use as positive examples
@@ -45,3 +49,6 @@ if __name__ == "__main__":
  
     outFile = inFile.replace('.npy', '') + '-thresh'
     np.save(outFile, Y)
+
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
