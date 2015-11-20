@@ -22,6 +22,6 @@ if __name__ == "__main__":
 
     # Can also save a matlab version, if desired (is optional).
     outFile = inFile.replace('.hdf5', '.mat')
-    savemat(outFile, {'Y' : volume.value})
+    savemat(outFile, {'X' : np.transpose(volume.value, (1,2,0))})
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
