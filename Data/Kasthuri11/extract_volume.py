@@ -4,16 +4,24 @@
 import sys, os
 import numpy as np
 import h5py
+from scipy.io import savemat
 
 
-inFile = sys.argv[1]
-if not os.path.exists(inFile):
-	raise RuntimeError('could not find input file %s' % inFile)
+if __name__ == "__main__": 
+    inFile = sys.argv[1] 
+    if not os.path.exists(inFile): 
+        raise RuntimeError('could not find input file %s' % inFile)
 
-f = h5py.File(inFile, 'r')
-group = f[f.keys()[0]]
+    f = h5py.File(inFile, 'r')
+    group = f[f.keys()[0]]
 
-volume = group[u'CUTOUT']
+    volume = group[u'CUTOUT']
 
-outFile = inFile.replace('.hdf5', '')
-np.save(outFile, volume)
+    outFile = inFile.replace('.hdf5', '')
+    np.save(outFile, volume.value)
+
+    # Can also save a matlab version, if desired (is optional).
+    outFile = inFile.replace('.hdf5', '.mat')
+    savemat(outFile, {'Y' : volume.value})
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
