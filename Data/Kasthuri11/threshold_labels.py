@@ -41,7 +41,7 @@ if __name__ == "__main__":
     else: 
         thresh = quantile(np.reshape(P, (P.size,)), THRESH_QUANTILES)
         print('[info]: Thresholding data using quantiles: %s' % (THRESH_QUANTILES)) 
-        print('[info]: Resulting thresholds:              %s' % (thresh))
+    print('[info]: Using thresholds:                  %s' % (thresh))
 
     Y = -1 * np.ones(P.shape, dtype=np.uint8)
     Y[P >= thresh[1]] = 1     # high probability -> use as positive examples
@@ -49,6 +49,9 @@ if __name__ == "__main__":
  
     outFile = inFile.replace('.npy', '') + '-thresh'
     np.save(outFile, Y)
+
+    pct = 100.0 * np.sum(Y>=0) / Y.size
+    print('[info]: Training labels use %0.2f%% of input volume.' % pct)
 
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
