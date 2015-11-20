@@ -14,7 +14,7 @@ assert(ndims(Y) == 3);
 [m,n,p] = size(Y);
 
 idx0 = 1;
-thresh0 = [0 .7];
+thresh0 = [.1 .6];
 
 
 figure; hist(Y(:)); title('Distribution of scores');
