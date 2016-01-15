@@ -37,15 +37,10 @@ class TestEmcnn(unittest.TestCase):
     def test_xform_minibatch(self):
         X = np.random.randint(0,10, size=(2,100,3,3))
 
-        # if prob of flip is 0 -> no data augmentation
-        for ii in range(30):
-            Xprime = emcnn._xform_minibatch(X,prob=0.0)
-            self.assertTrue(np.all(X == Xprime))
-        
-        # if prob of flip is high -> some data augmentation
+        # in 30 trials, there should be at least one data augmentation
         numDiff = 0
         for ii in range(30):
-            Xprime = emcnn._xform_minibatch(X,prob=0.9)
+            Xprime = emcnn._xform_minibatch(X)
             if np.any(X != Xprime): numDiff += 1
             # make sure we didn't nuke the data
             self.assertTrue(np.any(Xprime > 0))
