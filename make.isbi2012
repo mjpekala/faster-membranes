@@ -5,8 +5,12 @@
 EXPERIMENT=ISBI-2012
 CNN=lenet_py
 
-include make.config
+CAFFE_MODEL=iter_480000.caffemodel
+EVAL_PCT=.1
+ROTATE=0
 
+
+include make.config
 
 
 #-------------------------------------------------------------------------------
