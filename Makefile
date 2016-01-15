@@ -22,14 +22,6 @@ include make.config
 #-------------------------------------------------------------------------------
 # "administrative" targets
 #-------------------------------------------------------------------------------
-default:
-	@echo ""
-	@echo "Experiment:  $(EXPERIMENT)"
-	@echo "Base dir:    $(BASE_DIR)"
-	@echo "Output dir:  $(OUT_DIR)"
-	@echo "Using caffe: $(PYCAFFE)"
-	@echo ""
-	@echo "Please explicitly choose a target"
 
 
 tar:
@@ -46,53 +38,6 @@ tar:
 unittest:
 	$(PY) tests/test_emlib.py
 	$(PY) tests/test_emcnn.py
-
-
-#-------------------------------------------------------------------------------
-#  I. Generating probability maps for ISBI 2012
-#-------------------------------------------------------------------------------
-
-isbi2012-train:
-	@mkdir -p $(OUT_DIR)
-	$(PYNOHUP) $(SRC)/emcnn.py \
-		--x-train $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
-		--y-train $(BASE_DIR)/Data/ISBI2012/train-labels.tif \
-		--train-slices "range(0,28)" \
-		--x-valid $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
-		--y-valid $(BASE_DIR)/Data/ISBI2012/train-labels.tif \
-		--valid-slices "range(28,30)" \
-		--solver $(MODEL_DIR)/$(CNN)_solver.prototxt \
-		--rotate-data $(ROTATE) \
-		--gpu $(GPU) \
-		--out-dir $(OUT_DIR) \
-		> $(OUT_DIR)/pycaffe.$(CNN).train.out &
-
-
-# set --x-deploy to whatever file you wish to analyze
-isbi2012-deploy:
-	@mkdir -p $(OUT_DIR)
-	$(PYNOHUP) $(SRC)/emcnn.py \
-		--x-deploy $(BASE_DIR)/Data/ISBI2012/test-volume.tif \
-		--network $(MODEL_DIR)/$(CNN)_net.prototxt \
-		--model $(OUT_DIR)/$(CAFFE_MODEL) \
-		--gpu $(GPU) \
-		--eval-pct $(EVAL_PCT) \
-		--out-dir $(OUT_DIR) \
-		> $(OUT_DIR)/pycaffe.$(CNN).deploy.$(NOW).out &
-
-
-isbi2012-uq:
-	@mkdir -p $(OUT_DIR)
-	$(PYNOHUP) $(SRC)/emcnn.py \
-		--x-deploy $(BASE_DIR)/Data/ISBI2012/train-volume.tif \
-		--deploy-slices "[28,29]" \
-		--network $(MODEL_DIR)/$(CNN)_net.prototxt \
-		--model $(OUT_DIR)/$(CAFFE_MODEL) \
-		--gpu $(GPU) \
-		--eval-pct $(EVAL_PCT) \
-		--n-monte-carlo 30 \
-		--out-dir $(OUT_DIR) \
-		> $(OUT_DIR)/pycaffe.$(CNN).uq.out &
 
 
 #-------------------------------------------------------------------------------
