@@ -39,6 +39,7 @@ unittest:
 	$(PY) tests/test_emlib.py
 	$(PY) tests/test_emcnn.py
 
+#### **** TODO: move everything from here down into separate makefiles ****
 
 #-------------------------------------------------------------------------------
 #  II. Caffe vs CcT timing estimates.
