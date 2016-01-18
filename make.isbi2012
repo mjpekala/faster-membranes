@@ -3,7 +3,8 @@
 #-------------------------------------------------------------------------------
 
 EXPERIMENT=ISBI-2012
-CNN=lenet_py
+CNN=n3_py
+GPU=1
 
 CAFFE_MODEL=iter_480000.caffemodel
 EVAL_PCT=.1
