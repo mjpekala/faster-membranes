@@ -16,7 +16,7 @@ hold on;
 r = color1(1); g = color1(2); b = color1(3);
 layer1 = cat(3, r*ones(size(baseImage)), g*ones(size(baseImage)), b*ones(size(baseImage)));
 h = imshow(layer1);
-set(h, 'AlphaData', double(overlay1));
+set(h, 'AlphaData', double(overlay1)/2);
 
 % overlay 2 (optional)
 if length(overlay2) > 0

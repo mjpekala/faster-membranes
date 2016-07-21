@@ -1,11 +1,12 @@
 # faster-membranes
+**UPDATE (March 2015)**: This code is being replaced by a Theano/Keras implementation (which is a bit easier to set up and run on some systems). A prototype/experimental version is [here](https://github.com/mjpekala/bio-segmentation); the "official" version will be incorporated into [this](https://github.com/neurodata/ndparse) much larger neuroscience toolkit.
+
 This repository hosts an experiment for segmenting EM images, with the
 goal of higher throughput relative to exhaustive application of sliding window CNNs.
 
 Note: this code is in an experimental state and subject to change.
 Furthermore, no attempt has (yet) been made to optimize these CNN models.
 
-UPDATE (March 2015): This code is being replaced by a Theano/Keras implementation (which is a bit easier to set up and run on some systems). A prototype/experimental version is [here](https://github.com/mjpekala/bio-segmentation); the "official" version will be incorporated into [this](https://github.com/neurodata/ndparse) much larger neuroscience toolkit.
 
 
 ## Quick start
